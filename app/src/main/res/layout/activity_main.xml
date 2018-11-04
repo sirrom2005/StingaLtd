@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <TextView
+        android:id="@+id/welcome"
+        android:text="Your Job Task"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:paddingTop="55dp"
+        android:paddingLeft="15dp"
+        android:textColor="@android:color/white"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:background="@drawable/activity_background"/>
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"/>
+
+    <FrameLayout
+        android:id="@+id/container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="-115dp"
+        android:layout_below="@id/welcome"/>
+</RelativeLayout>

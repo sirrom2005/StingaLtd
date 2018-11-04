@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v7.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@android:color/white"
+    android:layout_margin="@dimen/recycle_view_margin"
+    app:cardCornerRadius="0dp"
+    app:cardElevation="2dp"
+    app:cardMaxElevation="5dp">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="@dimen/recycle_view_margin"
+        android:background="#ffffff"
+        android:id="@+id/job_list">
+        <TextView
+            android:text="@string/technician_note"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <EditText
+            android:id="@+id/editText"
+            android:layout_width="match_parent"
+            android:layout_height="100dp"
+            android:background="#eee"
+            android:gravity="top"
+            android:ems="10"
+            android:inputType="textMultiLine"
+            android:autofillHints="@string/technician_note" />
+    </LinearLayout>
+</android.support.v7.widget.CardView>
+
+

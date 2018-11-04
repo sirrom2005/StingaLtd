@@ -1,0 +1,29 @@
+<resources>
+    <string name="app_name">StingaLtd</string>
+    <!-- Strings related to login -->
+    <string name="prompt_email">Email</string>
+    <string name="prompt_password">Password</string>
+    <string name="action_sign_in">Sign in</string>
+    <string name="action_sign_in_short">Sign in</string>
+    <string name="error_invalid_email">This email address is invalid</string>
+    <string name="error_invalid_password">This password is too short</string>
+    <string name="error_incorrect_login">Incorrect login information</string>
+    <string name="error_field_required">This field is required</string>
+    <string name="error_network_connection">Network error</string>
+    <string name="error_unknown">Unknown error</string>
+    <string name="btn_pre_img">Add Pre Images</string>
+    <string name="btn_post_img">Add Post Images</string>
+    <string name="technician_note">Technician Notes</string>
+    <string name="submit">Submit</string>
+    <string name="verify_job_is_complete">Select to verify that task is complete</string>
+    <string name="exit_app">Are you sure you want to logout?</string>
+
+    <string name="file_provider">com.stingaltd.stingaltd</string>
+    <string name="camera_failed">Camera task failed</string>
+    <string name="photo_error_local_folder">Error Saving Photo to Local Directory</string>
+    <string name="work_item">Work Item #:</string>
+    <string name="preference_email">com.stingaltd.stingaltd.EMAIL</string>
+    <string name="preference_email_key">com.stingaltd.stingaltd.EMAIL_KEY</string>
+    <string name="email">Email</string>
+    <string name="phone">Phone</string>
+</resources>

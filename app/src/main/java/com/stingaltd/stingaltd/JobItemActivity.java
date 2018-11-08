@@ -1,12 +1,12 @@
 package com.stingaltd.stingaltd;
 
 import android.Manifest;
-import android.content.Context;
+import android.annotation.SuppressLint;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
@@ -17,7 +17,6 @@ import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -25,18 +24,19 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.stingaltd.stingaltd.Classes.LoadImageScroller;
 import com.stingaltd.stingaltd.Classes.PhotoProcessor;
+import com.stingaltd.stingaltd.Classes.UploadImage;
 import com.stingaltd.stingaltd.Common.Common;
-import com.stingaltd.stingaltd.Models.Account;
 import com.stingaltd.stingaltd.Models.JobItem;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
 
+import static com.stingaltd.stingaltd.Common.Common.IMG_POST;
+import static com.stingaltd.stingaltd.Common.Common.IMG_PRE;
 import static com.stingaltd.stingaltd.Common.Common.JOB_ITEM;
 import static com.stingaltd.stingaltd.Common.Common.LOG_TAG;
-import static com.stingaltd.stingaltd.Common.Common.convertDpToPixel;
 
 public class JobItemActivity extends AppCompatActivity
 {
@@ -46,13 +46,16 @@ public class JobItemActivity extends AppCompatActivity
 
     private LinearLayout    mPre_image_list,
                             mPost_image_list;
-    PhotoProcessor photoProcessor = new PhotoProcessor();
+    private PhotoProcessor photoProcessor = new PhotoProcessor();
+    private LoadImageScroller loadImageScroller;
     private String mCurrentPhotoPath;
     private String mPhotoType;
-    private int WordId = 1;
+    private int mWorkId;
+    private int mJobPos;
+    private String mJobType;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_job_item);
 
@@ -62,10 +65,9 @@ public class JobItemActivity extends AppCompatActivity
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
 
-        mPre_image_list    = findViewById(R.id.pre_image_list);
-        mPost_image_list   = findViewById(R.id.post_image_list);
-        //Button btn_pre_img = findViewById(R.id.btn_pre_img);
-        //Button btn_post_img= findViewById(R.id.btn_post_img);
+        mPre_image_list         = findViewById(R.id.pre_image_list);
+        mPost_image_list        = findViewById(R.id.post_image_list);
+        Button submit           = findViewById(R.id.submit);
 
         TextView vJobType       = findViewById(R.id.job_type);
         TextView vJobId         = findViewById(R.id.job_id);
@@ -75,99 +77,71 @@ public class JobItemActivity extends AppCompatActivity
         Button vEmail           = findViewById(R.id.send_email);
         Button vMobile          = findViewById(R.id.make_call);
 
-        JobItem mItem = (JobItem) getIntent().getSerializableExtra(JOB_ITEM);
+        JobItem WorkItem = (JobItem) getIntent().getSerializableExtra(JOB_ITEM);
+        mWorkId  = WorkItem.id;
+        mJobType = WorkItem.job_type;
 
-        vJobType.setText(mItem.getJob_type());
-        vJobId.setText(String.format("%s%s", getString(R.string.work_item), mItem.getJob_id()));
-        vJobItem.setText(mItem.getTitle());
-        vAssignDate.setText(mItem.getAssign_date());
-        vCustomer.setText(Html.fromHtml(mItem.getCustomer()));
+        vJobType.setText(WorkItem.getJob_type());
+        vJobId.setText(String.format("%s%s", getString(R.string.work_item), WorkItem.getJob_id()));
+        vJobItem.setText(WorkItem.getTitle());
+        vAssignDate.setText(WorkItem.getAssign_date());
+        vCustomer.setText(Html.fromHtml(WorkItem.getCustomer()));
         vEmail.setVisibility(View.VISIBLE);
         vMobile.setVisibility(View.VISIBLE);
 
-/*        btn_pre_img.setOnClickListener(new View.OnClickListener() {
+        submit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mPhotoType = IMG_PRE;
-                launchCamera();
+                new UploadImage(getApplicationContext()).Upload();
             }
         });
 
-        btn_post_img.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mPhotoType = IMG_POST;
-                launchCamera();
-            }
-        });*/
+        LoadGalleryLabels();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-
-        SharedPreferences sharedPref = getSharedPreferences(getString(R.string.preference_email), Context.MODE_PRIVATE);
-        String email = sharedPref.getString(getString(R.string.preference_email_key), "");
-
-        Account obj = null;
-        try {
-            obj = Common.readObjectFromFile(this, Common.getFileNameFromEmail(email));
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-
-        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(
-                (int)convertDpToPixel(120,  this),
-                (int)convertDpToPixel(160, this));
-        layoutParams.setMargins((int)convertDpToPixel(0,  this), 0, (int)convertDpToPixel(7,  this), 0);
-
-        LayoutInflater inflater = (LayoutInflater) getApplicationContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-
-
-        final String[] keys = obj.getGalleryLable().get("Electric Fence Installation");
-
-        for(int i =0; i<keys.length; i++)
-        {
-            View placeHolder_pre = inflater.inflate(R.layout.gallery_place_holder, null);
-            View placeHolder_post = inflater.inflate(R.layout.gallery_place_holder, null);
-            placeHolder_pre.setLayoutParams(layoutParams);
-            placeHolder_post.setLayoutParams(layoutParams);
-
-            TextView label_pre  = placeHolder_pre.findViewById(R.id.label);
-            TextView label_post = placeHolder_post.findViewById(R.id.label);
-
-            ImageView add_btn_pre  = placeHolder_pre.findViewById(R.id.add_btn);
-            ImageView add_btn_post = placeHolder_post.findViewById(R.id.add_btn);
-
-            label_pre.setText(keys[i]);
-            label_post.setText(keys[i]);
-
-            final int finalI = i;
-            add_btn_pre.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Toast.makeText(getBaseContext(), "T " + keys[finalI], Toast.LENGTH_SHORT).show();
-                }
-            });
-
-            add_btn_post.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Toast.makeText(getBaseContext(), "B " + keys[finalI], Toast.LENGTH_SHORT).show();
-                }
-            });
-
-            mPre_image_list.addView(placeHolder_pre);
-            mPost_image_list.addView(placeHolder_post);
-        }
-
-        //new LoadImageScroller(mPre_image_list, IMG_PRE,this, WordId).execute();
-        //new LoadImageScroller(mPost_image_list, IMG_POST,this, WordId).execute();
     }
 
-    private void launchCamera()
+    private void LoadGalleryLabels()
+    {
+        String[] labels = Common.getAccount(getApplicationContext()).getGalleryLable().get(mJobType);
+        loadImageScroller = new LoadImageScroller(getApplicationContext(), mWorkId);
+        loadImageScroller.PrepareGalleryLabel(mPre_image_list, mPost_image_list, labels);
+
+        ImageView preBtn, postBtn;
+
+        for(int i =0; i<mPre_image_list.getChildCount(); i++){
+            preBtn  = mPre_image_list.getChildAt(i).findViewById(R.id.add_btn);
+            postBtn = mPost_image_list.getChildAt(i).findViewById(R.id.add_btn);
+
+            final int finalI = i;
+            preBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    mPhotoType  = IMG_PRE;
+                    mJobPos     = finalI;
+                    launchCamera();
+                }
+            });
+
+            postBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    mPhotoType  = IMG_POST;
+                    mJobPos     = finalI;
+                    launchCamera();
+                }
+            });
+
+            loadImageScroller.LoadImage(mPre_image_list.getChildAt(i),  String.format("%s%s.json", i,Common.IMG_PRE), false);
+            loadImageScroller.LoadImage(mPost_image_list.getChildAt(i), String.format("%s%s.json", i,Common.IMG_POST), false);
+        }
+    }
+
+
+    public void launchCamera()
     {
         if(ContextCompat.checkSelfPermission(this,Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED )
         {
@@ -238,12 +212,10 @@ public class JobItemActivity extends AppCompatActivity
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        String path = null;
         if(requestCode == REQUEST_TAKE_PHOTO && resultCode == RESULT_OK) {
-            if(photoProcessor.MoveFile(getBaseContext(), mCurrentPhotoPath, WordId, mPhotoType))
-            {
-                Toast.makeText(this,R.string.photo_error_local_folder,Toast.LENGTH_SHORT);
-            }
+            photoProcessor.SavePhotoJsonData(getBaseContext(), mCurrentPhotoPath, mWorkId, mPhotoType, mJobPos, mJobType);
+            View v = mPhotoType.equals(Common.IMG_PRE) ? mPre_image_list.getChildAt(mJobPos) : mPost_image_list.getChildAt(mJobPos) ;
+            loadImageScroller.LoadImage(v,  String.format("%s%s.json", mJobPos, mPhotoType), true);
         }
     }
 }

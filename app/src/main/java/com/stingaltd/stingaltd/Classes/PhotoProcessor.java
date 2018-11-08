@@ -1,21 +1,31 @@
 package com.stingaltd.stingaltd.Classes;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
+import android.media.ExifInterface;
+import android.os.AsyncTask;
 import android.os.Environment;
+import android.util.Base64;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.stingaltd.stingaltd.Common.Common;
+import com.stingaltd.stingaltd.Models.ImageData;
+import com.stingaltd.stingaltd.R;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+import java.util.Objects;
 
-import static com.stingaltd.stingaltd.Common.Common.PHOTO_PATH;
+import static android.util.Base64.encodeToString;
+import static com.stingaltd.stingaltd.Common.Common.LOG_TAG;
 import static com.stingaltd.stingaltd.Common.Common.TEMP_PHOTO_PATH;
 
 public class PhotoProcessor {
@@ -31,7 +41,7 @@ public class PhotoProcessor {
         File image = null;
         try {
             image = File.createTempFile(
-                    Common.ImageName(), /* prefix */
+                    Common.GetFileName(), /* prefix */
                     ".jpg",       /* suffix */
                     storageDir           /* directory */
             );
@@ -42,55 +52,92 @@ public class PhotoProcessor {
         return image;
     }
 
-    public boolean MoveFile(Context c, String path, int workId, String photoFolder)
+    public void SavePhotoJsonData(final Context c, final String ImagePath, final int WorkId, final String PhotoType, final int JobPos, final String JobType)
     {
-        InputStream in;
-        OutputStream out;
-        try {
-            File dir = new File(c.getFilesDir(),PHOTO_PATH);
-            if(!dir.exists()){
-                if(dir.mkdir()){
-                    Log.d(Common.LOG_TAG, String.format("Dir created %s", dir));
+        @SuppressLint("StaticFieldLeak")
+        AsyncTask<Void, Void, Boolean> task = new AsyncTask<Void, Void, Boolean>() {
+            @Override
+            protected Boolean doInBackground(Void... voids)
+            {
+                try {
+                    float angle         = GetImageRotation(ImagePath);
+                    Bitmap bitmap       = BitmapFactory.decodeFile(ImagePath);
+                    String LargeImage   = GetImage(bitmap, angle, 2000);
+                    String Thumb        = GetImage(bitmap, angle, 240);
+                    String FilePath     = String.format("/%s/%s%s.json",WorkId, JobPos, PhotoType);
+
+                    File dir = new File(c.getFilesDir(),String.valueOf(WorkId));
+                    if(!dir.exists()){
+                        if(dir.mkdir()){
+                            Log.d(Common.LOG_TAG, String.format("Directory created %s", dir));
+                        }
+                    }
+
+                    //get list of jo0b type from account just type list
+                    String PhotoLabel = Objects.requireNonNull(Common.getAccount(c).getGalleryLable().get(JobType))[JobPos];
+
+                    String DateCreated = new SimpleDateFormat("yyyyMMddHHmmss", Locale.US).format(new Date());
+
+                    ImageData imageData = new ImageData(WorkId, DateCreated, PhotoType, "", PhotoLabel,0,Thumb,LargeImage);
+                    Common.SaveObjectAsFile(c, imageData, FilePath);
+                }catch (IOException | NullPointerException ex)
+                {
+                    Log.e(Common.LOG_TAG, ex.getMessage());
+                    return false;
                 }
-            }
-
-            File WorkDir = new File(dir, String.valueOf(workId));
-            if(!WorkDir.exists()){
-                if(WorkDir.mkdir()){
-                    Log.d(Common.LOG_TAG, String.format("Dir created %s", WorkDir));
-                }
-            }
-
-            File imgDir = new File(WorkDir,photoFolder);
-            if(!imgDir.exists()){
-                if(imgDir.mkdir()){
-                    Log.d(Common.LOG_TAG, String.format("Dir created %s", imgDir));
-                }
-            }
-
-            File PhotoName = new File(imgDir, String.format("%s.jpg", Common.ImageName()));
-
-            in  = new FileInputStream(path);
-            out = new FileOutputStream(PhotoName);
-
-            byte[] buffer = new byte[1024];
-            int read;
-            while ((read = in.read(buffer)) != -1) {
-                out.write(buffer, 0, read);
-            }
-            in.close();
-
-            // write the output file
-            out.flush();
-            out.close();
-
-            // delete the original file
-            if(new File(path).delete()){
                 return true;
             }
-        } catch (Exception e) {
-            Log.e(Common.LOG_TAG, e.getMessage());
+
+            @Override
+            protected void onPostExecute(Boolean aBool) {
+                super.onPostExecute(aBool);
+                if(!aBool)
+                {
+                    Toast.makeText(c,R.string.photo_error_local_folder,Toast.LENGTH_SHORT).show();
+                }
+            }
+        };
+
+        task.execute();
+    }
+
+    private float GetImageRotation(String imagePath)
+    {
+        try {
+            ExifInterface exifInterface = new ExifInterface(imagePath);
+            int orientation = exifInterface.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_UNDEFINED);
+            switch (orientation) {
+                case ExifInterface.ORIENTATION_ROTATE_90:
+                    return 90f;
+                case ExifInterface.ORIENTATION_ROTATE_180:
+                    return 180f;
+                case ExifInterface.ORIENTATION_ROTATE_270:
+                    return 270f;
+                case ExifInterface.ORIENTATION_NORMAL:
+                    return 0f;
+                case ExifInterface.ORIENTATION_UNDEFINED:
+                    return 0f;
+                default:
+                    return 0f;
+            }
+        } catch (IOException ex) {
+            Log.e(LOG_TAG, ex.getMessage());
         }
-        return false;
+        return 0f;
+    }
+
+    private String GetImage(Bitmap source, float angle, int width)
+    {
+        Matrix matrix = new Matrix();
+        if(source.getWidth() > width){
+            float scale  = ((float) width)  / source.getWidth();
+            matrix.postScale(scale, scale);
+        }
+        matrix.postRotate(angle);
+
+        Bitmap bitmap = Bitmap.createBitmap(source, 0, 0, source.getWidth(), source.getHeight(), matrix,true);
+        ByteArrayOutputStream byteArray = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArray);
+        return encodeToString(byteArray.toByteArray(), Base64.NO_WRAP);
     }
 }

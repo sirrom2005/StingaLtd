@@ -30,6 +30,11 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".MainActivity" />
         </activity>
+        <activity android:screenOrientation="portrait" android:theme="@style/AppFullScreenTheme" android:name=".FullScreenImage" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".JobItemActivity" />
+        </activity>
         <!-- FileProvider -->
         <provider
             android:name="android.support.v4.content.FileProvider"

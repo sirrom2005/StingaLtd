@@ -2,12 +2,14 @@ package com.stingaltd.stingaltd;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
@@ -26,11 +28,7 @@ import com.stingaltd.stingaltd.Common.Common;
 import com.stingaltd.stingaltd.Interface.IAccount;
 import com.stingaltd.stingaltd.Models.Account;
 
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -157,38 +155,32 @@ public class LoginActivity extends AppCompatActivity implements Callback<Account
         // On Honeycomb MR2 we have the ViewPropertyAnimator APIs, which allow
         // for very easy animations. If available, use these APIs to fade-in
         // the progress spinner.
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2) {
-            int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
+        int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
 
-            mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
-            mLoginFormView.animate().setDuration(shortAnimTime).alpha(
-                    show ? 0 : 1).setListener(new AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
-                }
-            });
+        mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
+        mLoginFormView.animate().setDuration(shortAnimTime).alpha(
+                show ? 0 : 1).setListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
+            }
+        });
 
-            mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
-            mProgressView.animate().setDuration(shortAnimTime).alpha(
-                    show ? 1 : 0).setListener(new AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
-                }
-            });
-        } else {
-            // The ViewPropertyAnimator APIs are not available, so simply show
-            // and hide the relevant UI components.
-            mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
-            mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
-        }
+        mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
+        mProgressView.animate().setDuration(shortAnimTime).alpha(
+                show ? 1 : 0).setListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
+            }
+        });
     }
 
     /**
      * Represents an asynchronous login/registration task used to authenticate
      * the user.
      */
+    @SuppressLint("StaticFieldLeak")
     public class UserLoginTask extends AsyncTask<Void, Void, Boolean> {
 
         private final String mEmail;
@@ -230,7 +222,7 @@ public class LoginActivity extends AppCompatActivity implements Callback<Account
     }
 
     @Override
-    public void onResponse(Call<Account> call, Response<Account> response) {
+    public void onResponse(@NonNull Call<Account> call, @NonNull Response<Account> response) {
 /*        if(response.body()==null){
             mPasswordView.setError(getString(R.string.error_network_connection));
             mPasswordView.requestFocus();
@@ -244,7 +236,7 @@ public class LoginActivity extends AppCompatActivity implements Callback<Account
                 editor.putString(getString(R.string.preference_email_key), email);
                 editor.apply();
 
-                saveObjectFile(response.body(), Common.getFileNameFromEmail(email));
+                Common.SaveObjectAsFile(getApplicationContext(), response.body(), Common.getFileNameFromEmail(email));
 
                 Intent intent = new Intent(this, MainActivity.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -263,15 +255,8 @@ public class LoginActivity extends AppCompatActivity implements Callback<Account
         showProgress(false);
     }
 
-    private void saveObjectFile(Account json, String fileName) throws IOException {
-        FileOutputStream fos = openFileOutput(fileName, MODE_PRIVATE);
-        ObjectOutputStream os = new ObjectOutputStream(fos);
-        os.writeObject(json);
-        os.close();
-    }
-
     @Override
-    public void onFailure(Call<Account> call, Throwable t) {
+    public void onFailure(@NonNull Call<Account> call, @NonNull Throwable t) {
         Log.e(LOG_TAG, t.getMessage());
     }
 }

@@ -87,7 +87,9 @@ tools:context=".JobItemActivity">
         android:id="@+id/job_is_complete"
         android:layout_width="wrap_content"
         android:layout_height="match_parent" />
+
     <Button
+        android:id="@+id/submit"
         android:text="@string/submit"
         android:layout_gravity="center"
         android:layout_width="match_parent"

@@ -17,6 +17,7 @@
     <string name="submit">Submit</string>
     <string name="verify_job_is_complete">Select to verify that task is complete</string>
     <string name="exit_app">Are you sure you want to logout?</string>
+    <string name="remove_photo">Are you sure you want to delete this photo?</string>
 
     <string name="file_provider">com.stingaltd.stingaltd</string>
     <string name="camera_failed">Camera task failed</string>

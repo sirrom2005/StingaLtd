@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
@@ -74,7 +75,6 @@ public class MainActivity extends AppCompatActivity
      * */
     public static class _Fragment extends Fragment {
         private Activity mActivity;
-        private Context mContext;
 
         public static _Fragment newInstance() {
             return new _Fragment();
@@ -84,11 +84,10 @@ public class MainActivity extends AppCompatActivity
         public void onCreate(@Nullable Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
             mActivity = getActivity();
-            mContext = mActivity.getApplicationContext();
         }
 
         @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
             View viewRoot = inflater.inflate(R.layout.recycler_view, container, false);
             RecyclerView recyclerView = viewRoot.findViewById(R.id.recycler_view);
 

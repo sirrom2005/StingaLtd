@@ -1,19 +1,17 @@
 package com.stingaltd.stingaltd;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.net.Uri;
-import android.os.AsyncTask;
+import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
 import android.util.Log;
@@ -31,12 +29,17 @@ import com.stingaltd.stingaltd.Common.Common;
 import com.stingaltd.stingaltd.Models.JobItem;
 
 import java.io.File;
+import java.io.Serializable;
 import java.util.List;
+import java.util.Map;
 
+import static com.stingaltd.stingaltd.Common.Common.EXPENSE_AMOUNT_ITEM;
 import static com.stingaltd.stingaltd.Common.Common.IMG_POST;
 import static com.stingaltd.stingaltd.Common.Common.IMG_PRE;
+import static com.stingaltd.stingaltd.Common.Common.INVENTORY_ITEM;
 import static com.stingaltd.stingaltd.Common.Common.JOB_ITEM;
 import static com.stingaltd.stingaltd.Common.Common.LOG_TAG;
+import static com.stingaltd.stingaltd.Common.Common.WORK_ID_INTENT;
 
 public class JobItemActivity extends AppCompatActivity
 {
@@ -58,6 +61,8 @@ public class JobItemActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_job_item);
+        TextView vLable = findViewById(R.id.label);
+        vLable.setText(R.string.job_item);
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -67,41 +72,60 @@ public class JobItemActivity extends AppCompatActivity
 
         mPre_image_list         = findViewById(R.id.pre_image_list);
         mPost_image_list        = findViewById(R.id.post_image_list);
-        Button submit           = findViewById(R.id.submit);
+        //Button submit           = findViewById(R.id.submit);
 
         TextView vJobType       = findViewById(R.id.job_type);
         TextView vJobId         = findViewById(R.id.job_id);
         TextView vJobItem       = findViewById(R.id.job_item);
         TextView vAssignDate    = findViewById(R.id.assign_date);
         TextView vCustomer      = findViewById(R.id.customer);
-        Button vEmail           = findViewById(R.id.send_email);
-        Button vMobile          = findViewById(R.id.make_call);
+        Button vInventory       = findViewById(R.id.inventory);
+        Button vExpense         = findViewById(R.id.expense);
 
-        JobItem WorkItem = (JobItem) getIntent().getSerializableExtra(JOB_ITEM);
-        mWorkId  = WorkItem.id;
-        mJobType = WorkItem.job_type;
+
+        final JobItem WorkItem = (JobItem) getIntent().getSerializableExtra(JOB_ITEM);
+        mWorkId  = WorkItem.getId();
+        mJobType = WorkItem.getJob_type();
 
         vJobType.setText(WorkItem.getJob_type());
         vJobId.setText(String.format("%s%s", getString(R.string.work_item), WorkItem.getJob_id()));
         vJobItem.setText(WorkItem.getTitle());
         vAssignDate.setText(WorkItem.getAssign_date());
         vCustomer.setText(Html.fromHtml(WorkItem.getCustomer()));
-        vEmail.setVisibility(View.VISIBLE);
-        vMobile.setVisibility(View.VISIBLE);
 
-        submit.setOnClickListener(new View.OnClickListener() {
+        vInventory.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(JobItemActivity.this, InventoryActivity.class);
+                intent.putExtra(WORK_ID_INTENT, mWorkId);
+                intent.putExtra(INVENTORY_ITEM, (Serializable) WorkItem.getInventory());
+                startActivity(intent);
+            }
+        });
+
+        vExpense.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(JobItemActivity.this, ExpenseActivity.class);
+                intent.putExtra(WORK_ID_INTENT, mWorkId);
+                intent.putExtra(EXPENSE_AMOUNT_ITEM, (Serializable) WorkItem.getExpenseAmount());
+                startActivity(intent);
+            }
+        });
+
+        /*submit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 new UploadImage(getApplicationContext()).Upload();
             }
-        });
-
-        LoadGalleryLabels();
+        });*/
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        Log.d(Common.LOG_TAG,  "onResume >> ");
+        LoadGalleryLabels();
     }
 
     private void LoadGalleryLabels()
@@ -140,7 +164,6 @@ public class JobItemActivity extends AppCompatActivity
         }
     }
 
-
     public void launchCamera()
     {
         if(ContextCompat.checkSelfPermission(this,Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED )
@@ -165,9 +188,7 @@ public class JobItemActivity extends AppCompatActivity
         // Ensure that there's a camera activity to handle the intent
         if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
             // Create the File where the photo should go
-            File photoFile = null;
-
-            photoFile = photoProcessor.createTmpImageFile();
+            File photoFile = photoProcessor.createTmpImageFile();
 
             // Continue only if the File was successfully created
             if (photoFile != null) {

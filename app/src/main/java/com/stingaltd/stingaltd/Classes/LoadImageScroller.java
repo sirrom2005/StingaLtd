@@ -115,9 +115,9 @@ public class LoadImageScroller
             protected void onPostExecute(Bitmap bitmap) {
                 super.onPostExecute(bitmap);
                 if(bitmap!=null) {
-                    ImageView photo = v.findViewById(R.id.photo);
+                    ImageView photo    = v.findViewById(R.id.photo);
                     ImageView add_icon = v.findViewById(R.id.add_icon);
-                    ImageView add_btn = v.findViewById(R.id.add_btn);
+                    ImageView add_btn  = v.findViewById(R.id.add_btn);
 
                     add_icon.setVisibility(View.GONE);
                     photo.setImageBitmap(bitmap);

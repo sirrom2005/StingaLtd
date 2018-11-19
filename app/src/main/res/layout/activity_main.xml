@@ -2,18 +2,21 @@
 <RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
     <TextView
-        android:id="@+id/welcome"
-        android:text="Your Job Task"
+        android:id="@+id/label"
+        android:text="@string/app_name"
         android:textSize="18sp"
         android:textStyle="bold"
         android:paddingTop="55dp"
-        android:paddingLeft="15dp"
+        android:paddingStart="15dp"
+        android:paddingEnd="0dp"
         android:textColor="@android:color/white"
         android:layout_width="match_parent"
         android:layout_height="200dp"
@@ -29,5 +32,5 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginTop="-115dp"
-        android:layout_below="@id/welcome"/>
+        android:layout_below="@id/label"/>
 </RelativeLayout>

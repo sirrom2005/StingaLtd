@@ -11,7 +11,8 @@
         android:layout_gravity="center"
         android:background="@android:color/black"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="match_parent"
+        android:contentDescription="@string/app_name" />
 
     <TextView
         android:textColor="#000000"

@@ -222,15 +222,11 @@ public class LoginActivity extends AppCompatActivity implements Callback<Account
     }
 
     @Override
-    public void onResponse(@NonNull Call<Account> call, @NonNull Response<Account> response) {
-/*        if(response.body()==null){
-            mPasswordView.setError(getString(R.string.error_network_connection));
-            mPasswordView.requestFocus();
-            return;
-        }*/
+    public void onResponse(@NonNull Call<Account> call, @NonNull Response<Account> response)
+    {
         if (response.body()!=null) {
             try {
-                String email = response.body().email;
+                String email = response.body().getEmail();
                 SharedPreferences sharedPref = getSharedPreferences(getString(R.string.preference_email), MODE_PRIVATE);
                 SharedPreferences.Editor editor = sharedPref.edit();
                 editor.putString(getString(R.string.preference_email_key), email);

@@ -3,13 +3,12 @@ package com.stingaltd.stingaltd.Adapter;
 import android.content.Context;
 import android.content.Intent;
 import android.support.annotation.NonNull;
-import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.text.Html;
-import android.text.Spanned;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.stingaltd.stingaltd.JobItemActivity;
@@ -22,6 +21,8 @@ import static com.stingaltd.stingaltd.Common.Common.JOB_ITEM;
 
 
 public class JobItemAdapter extends RecyclerView.Adapter<JobItemAdapter.ViewHolder> {
+    private static final int DATA_VIEW  = 1;
+    private static final int EMPTY_VIEW = 2;
     private Context mContext;
     private LayoutInflater inflater;
     private List<JobItem> data;
@@ -41,41 +42,44 @@ public class JobItemAdapter extends RecyclerView.Adapter<JobItemAdapter.ViewHold
         View view;
         ViewHolder viewHolder;
 
-        view = inflater.inflate(R.layout.task_layout, parent, false);
-        viewHolder = new ViewHolder(view);
+        view = inflater.inflate((viewType==DATA_VIEW) ? R.layout.task_layout : R.layout.no_record_layout, parent, false);
+        viewHolder = new ViewHolder(view, viewType);
 
         return viewHolder;
     }
 
     @Override
     public void onBindViewHolder(@NonNull final ViewHolder vHolder, int position) {
-        final JobItem item = data.get(position);
-        vHolder.vJobType.setText(item.getJob_type());
-        vHolder.vJobId.setText(String.format("%s%s", mContext.getString(R.string.work_item), item.getJob_id()));
-        vHolder.vJobItem.setText(item.getTitle());
-        vHolder.vAssignDate.setText(item.getAssign_date());
-        vHolder.vCustomer.setText(Html.fromHtml(item.getCustomer()));
+        if(getItemViewType(position) == DATA_VIEW) {
+            final JobItem item = data.get(position);
+            vHolder.vJobType.setText(item.getJob_type());
+            vHolder.vJobId.setText(String.format("%s%s", mContext.getString(R.string.work_item), item.getJob_id()));
+            vHolder.vJobItem.setText(item.getTitle());
+            vHolder.vAssignDate.setText(item.getAssign_date());
+            vHolder.vCustomer.setText(Html.fromHtml(item.getCustomer()));
 
-        vHolder.vHolder.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(mContext, JobItemActivity.class);
-                intent.putExtra(JOB_ITEM, item);
-                mContext.startActivity(intent);
-            }
-        });
+            vHolder.vHolder.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(mContext, JobItemActivity.class);
+                    intent.putExtra(JOB_ITEM, item);
+                    mContext.startActivity(intent);
+                }
+            });
+        }else{
+            vHolder.vErrorCode.setText(R.string.app_name);
+            vHolder.vErrorDescription.setText(R.string.no_record);
+        }
     }
 
     @Override
     public int getItemViewType(int position) {
-        return 0;
+        return data==null? EMPTY_VIEW : DATA_VIEW;
     }
 
     @Override
     public int getItemCount() {
-        if(data==null)
-            return 0;
-        return data.size();
+        return data==null? 1 : data.size();
     }
 
     class ViewHolder extends RecyclerView.ViewHolder {
@@ -83,17 +87,24 @@ public class JobItemAdapter extends RecyclerView.Adapter<JobItemAdapter.ViewHold
                     vJobId,
                     vJobItem,
                     vAssignDate,
-                    vCustomer;
-        CardView    vHolder;
+                    vCustomer,
+                    vErrorCode,
+                    vErrorDescription;
+        RelativeLayout vHolder;
 
-        private ViewHolder(View v){
+        private ViewHolder(View v, int viewType){
             super(v);
-            vJobType        = v.findViewById(R.id.job_type);
-            vJobId          = v.findViewById(R.id.job_id);
-            vJobItem        = v.findViewById(R.id.job_item);
-            vAssignDate     = v.findViewById(R.id.assign_date);
-            vCustomer       = v.findViewById(R.id.customer);
-            vHolder         = v.findViewById(R.id.holder);
+            if(viewType==DATA_VIEW) {
+                vJobType = v.findViewById(R.id.job_type);
+                vJobId = v.findViewById(R.id.job_id);
+                vJobItem = v.findViewById(R.id.job_item);
+                vAssignDate = v.findViewById(R.id.assign_date);
+                vCustomer = v.findViewById(R.id.customer);
+                vHolder = v.findViewById(R.id.holder);
+            }else{
+                vErrorCode = v.findViewById(R.id.err_code);
+                vErrorDescription = v.findViewById(R.id.err_description);
+            }
         }
     }
 }

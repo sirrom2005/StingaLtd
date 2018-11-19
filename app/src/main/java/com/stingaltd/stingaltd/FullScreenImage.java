@@ -1,15 +1,14 @@
 package com.stingaltd.stingaltd;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentStatePagerAdapter;
+import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Base64;
@@ -19,8 +18,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.stingaltd.stingaltd.Common.Common;
 import com.stingaltd.stingaltd.Models.ImageData;
@@ -33,7 +32,7 @@ import java.util.Locale;
 
 public class FullScreenImage extends AppCompatActivity {
     private static int WorkId;
-    private static ArrayList mImageList  = new ArrayList();
+    private ArrayList<String> mImageList  = new ArrayList<>();
     private static int mPosition;
 
     @Override
@@ -43,7 +42,7 @@ public class FullScreenImage extends AppCompatActivity {
         setContentView(R.layout.full_screen_image_activity);
         final ViewPager pager = findViewById(R.id.pager);
         final TextView pagination = findViewById(R.id.pagination);
-        FloatingActionButton fab = findViewById(R.id.fab);
+        final FloatingActionButton fab = findViewById(R.id.fab);
 
 
         Intent intent = getIntent();
@@ -53,10 +52,10 @@ public class FullScreenImage extends AppCompatActivity {
         getImageData(WorkId);
         mPosition = mImageList.indexOf(file);
 
-        final MyPagerAdapter MyPagerAdapter = new MyPagerAdapter(getSupportFragmentManager());
+        final MyPagerAdapter MyPagerAdapter = new MyPagerAdapter(this);
 
         pager.setAdapter(MyPagerAdapter);
-        pager.setOffscreenPageLimit(mImageList.size());
+        pager.setOffscreenPageLimit(0);
         pager.setCurrentItem(mPosition);
 
         pager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
@@ -80,18 +79,28 @@ public class FullScreenImage extends AppCompatActivity {
             public void onClick(View v) {
                 Common.ConfirmMsg(FullScreenImage.this, getString(R.string.remove_photo));
 
-                final Button action = Common.confirmation.findViewById(R.id.action);
+                final Button action = Common.confirmation.get().findViewById(R.id.action);
                 action.setOnClickListener(new View.OnClickListener() {
+                    @SuppressLint("RestrictedApi")
                     @Override
                     public void onClick(View v) {
-                        deleteImage(mImageList.get(mPosition).toString());
-                        MyPagerAdapter.notifyDataSetChanged();
-                        pagination.setText(String.format(Locale.US, "| %d of %d |",(pager.getCurrentItem()), mImageList.size()));
+                        Log.d(Common.LOG_TAG, mPosition + " " + mImageList.size());
+                        int loc = 0;
+                        if(mImageList.size()>0) {
+                            deleteImage(mImageList.get(mPosition));
+                            MyPagerAdapter.notifyDataSetChanged();
+                            if(mImageList.size()>0){
+                                loc = pager.getCurrentItem() + 1;
+                            }else {
+                                fab.setVisibility(View.GONE);
+                            }
+                            pagination.setText(String.format(Locale.US, "| %d of %d |", loc, mImageList.size()));
+                        }
                         Common.alert.dismiss();
                     }
                 });
 
-                final Button cancel = Common.confirmation.findViewById(R.id.cancel);
+                final Button cancel = Common.confirmation.get().findViewById(R.id.cancel);
                 cancel.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
@@ -120,52 +129,32 @@ public class FullScreenImage extends AppCompatActivity {
         }
     }
 
-    private class MyPagerAdapter extends FragmentStatePagerAdapter {
-        private MyPagerAdapter(FragmentManager fm) {
-            super(fm);
-        }
+    private class MyPagerAdapter extends PagerAdapter {
+        private Context c;
+        private LayoutInflater layoutInflater;
 
-        @Override
-        public Fragment getItem(int position) {
-            return FullScreenImageFragment.newInstance(position);
+        private MyPagerAdapter(Context c) {
+            this.c = c;
+            layoutInflater = (LayoutInflater) c.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         }
 
         @Override
         public int getCount() {
             return mImageList.size();
         }
-    }
 
-    public static class FullScreenImageFragment extends Fragment
-    {
-        private Context c;
-        private int mPos;
-        public static Fragment newInstance(int pos) {
-            FullScreenImageFragment f = new FullScreenImageFragment();
-            Bundle args = new Bundle();
-            args.putInt("ID",pos);
-            f.setArguments(args);
-            return f;
-        }
-
+        @NonNull
         @Override
-        public void onCreate(Bundle savedInstanceState) {
-            super.onCreate(savedInstanceState);
-            c = getContext();
-            Bundle bundle = getArguments();
-            mPos = bundle.getInt("ID",0);
-        }
+        public Object instantiateItem(@NonNull ViewGroup container, int position)
+        {
+            View itemView = layoutInflater.inflate(R.layout.full_screen_image_fragment, container, false);
+            ImageView imageView = itemView.findViewById(R.id.imageView);
+            TextView label = itemView.findViewById(R.id.label);
 
-        @Nullable
-        @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-            View rootView = inflater.inflate(R.layout.full_screen_image_fragment, container, false);
-            ImageView imageView = rootView.findViewById(R.id.imageView);
-            TextView label = rootView.findViewById(R.id.label);
-
+            Log.d(Common.LOG_TAG,  "Fragment SIZE >> " + mImageList.size());
 
             try {
-                ImageData obj = (ImageData) Common.readObjectFromFile(c, WorkId + "/" + mImageList.get(mPos));
+                ImageData obj = (ImageData) Common.readObjectFromFile(c, WorkId + "/" + mImageList.get(position));
                 byte[] decodedString = Base64.decode(obj.getLargeImage(), Base64.NO_WRAP);
                 Bitmap img = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
                 imageView.setImageBitmap(img);
@@ -174,7 +163,23 @@ public class FullScreenImage extends AppCompatActivity {
                 Log.e(Common.LOG_TAG, ex.getMessage());
             }
 
-            return rootView;
+            container.addView(itemView);
+            return itemView;
+        }
+
+        @Override
+        public boolean isViewFromObject(@NonNull View view, @NonNull Object o) {
+            return view == o;
+        }
+
+        @Override
+        public void destroyItem(@NonNull ViewGroup container, int position, @NonNull Object object) {
+            container.removeView((RelativeLayout) object);
+        }
+
+        @Override
+        public int getItemPosition(@NonNull Object object){
+            return PagerAdapter.POSITION_NONE;
         }
     }
 }

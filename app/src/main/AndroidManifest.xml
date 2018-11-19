@@ -5,6 +5,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <uses-feature android:name="android.hardware.camera2" android:required="true" />
 
@@ -31,6 +32,16 @@
                 android:value=".MainActivity" />
         </activity>
         <activity android:screenOrientation="portrait" android:theme="@style/AppFullScreenTheme" android:name=".FullScreenImage" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".JobItemActivity" />
+        </activity>
+        <activity android:screenOrientation="portrait" android:theme="@style/AppTheme" android:name=".InventoryActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".JobItemActivity" />
+        </activity>
+        <activity android:screenOrientation="portrait" android:theme="@style/AppTheme" android:name=".ExpenseActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".JobItemActivity" />

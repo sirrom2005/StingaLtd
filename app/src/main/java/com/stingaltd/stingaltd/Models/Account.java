@@ -1,17 +1,20 @@
 package com.stingaltd.stingaltd.Models;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Account implements Serializable {
     private static final long serialVersionUID = 101L;
-    public int technician_id;
-    public String fname;
-    public String lname;
-    public String email;
-    public String mobile_number;
-    public Map<String, String[]> gallery_lable = new HashMap<>();
+    private int technician_id;
+    private String fname;
+    private String lname;
+    private String email;
+    private String mobile_number;
+    private List<Expenses> expenses = new ArrayList<>();
+    private Map<String, String[]> gallery_lable = new HashMap<>();
 
     public int getTechnicianId() { return technician_id; }
 
@@ -33,5 +36,9 @@ public class Account implements Serializable {
 
     public Map<String, String[]> getGalleryLable() {
         return gallery_lable;
+    }
+
+    public List<Expenses> getExpenses() {
+        return expenses;
     }
 }

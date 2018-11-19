@@ -1,13 +1,14 @@
 package com.stingaltd.stingaltd.Common;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
+import android.os.AsyncTask;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 import android.widget.TextView;
 
 import com.stingaltd.stingaltd.Models.Account;
@@ -19,29 +20,62 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
+import java.lang.ref.WeakReference;
+import java.net.InetAddress;
+import java.util.concurrent.ExecutionException;
 
 public class Common {
     public static final String LOG_TAG = "stinga";
     public static final String BASE_URL = "http://104.248.118.6/api/public/";
-    public static final String TEMP_PHOTO_PATH = "stinga";
+    public static final String TEMP_PHOTO_PATH = "tmp";
     public static final String JOB_ITEM = "com.stingaltd.stingaltd.JOB_ITEM";
+    public static final String INVENTORY_ITEM = "com.stingaltd.stingaltd.INVENTORY_ITEM";
     public static final String SELECTED_IMG_FILE = "com.stingaltd.stingaltd.filename";
     public static final String WORK_ID_INTENT = "com.stingaltd.stingaltd.work_id";
+    public static final String EXPENSE_AMOUNT_ITEM = "com.stingaltd.stingaltd.expense_amount_id";
     public static final String IMG_PRE = "_pre";
     public static final String IMG_POST = "_post";
 
     public static AlertDialog alert= null;
-    public static View confirmation = null;
+    public static WeakReference<View> confirmation = null;
 
-    public static String GetFileName(){
+    /*public static String GetFileName(){
         return new SimpleDateFormat("yyyyMMddHHmmss", Locale.US).format(new Date());
     }
 
     public static float convertPixelsToDp(float px, Context c){
         return px / ((float) c.getResources().getDisplayMetrics().densityDpi / DisplayMetrics.DENSITY_DEFAULT);
+    }*/
+
+    public static boolean _isInternetAvailable()
+    {
+        try{
+            InetAddress ipAddr = InetAddress.getByName("104.248.118.6");
+            return !ipAddr.equals("");
+        } catch (Exception ex) {
+            Log.e(LOG_TAG, ex.getMessage());
+            return false;
+        }
+    }
+
+    public static boolean isInternetAvailable() {
+        final String command = "ping -c 1 104.248.118.6";
+        try {
+            return Runtime.getRuntime().exec(command).waitFor() == 0;
+        } catch (InterruptedException | IOException ex) {
+            Log.e(LOG_TAG, ex.getMessage());
+            return false;
+        }
+    }
+
+    public static float getlatitude(Context c) {
+        SharedPreferences prefs = c.getSharedPreferences(c.getString(R.string.file_provider), Context.MODE_PRIVATE);
+        return prefs.getFloat("Latitude", Float.parseFloat(c.getString(R.string.default_latitude)));
+    }
+
+    public static float getlongitude(Context c) {
+        SharedPreferences prefs = c.getSharedPreferences(c.getString(R.string.file_provider), Context.MODE_PRIVATE);
+        return prefs.getFloat("Longitude", Float.parseFloat(c.getString(R.string.default_longitude)));
     }
 
     public static float convertDpToPixel(float dp, Context c){
@@ -57,7 +91,7 @@ public class Common {
     }
 
     public static Account getAccount(Context c){
-        SharedPreferences sharedPref = c.getSharedPreferences(c.getString(R.string.preference_email), c.MODE_PRIVATE);
+        SharedPreferences sharedPref = c.getSharedPreferences(c.getString(R.string.preference_email), Context.MODE_PRIVATE);
         String email = sharedPref.getString(c.getString(R.string.preference_email_key), "");
 
         Account obj = null;
@@ -86,15 +120,14 @@ public class Common {
     }
 
     public static void ConfirmMsg(Context c, String msg) {
-        confirmation = View.inflate(c, R.layout.confirmation_box_layout, null);
-        final boolean[] task = {false};
+        confirmation = new WeakReference<>(View.inflate(c, R.layout.confirmation_box_layout, null));
 
-        TextView text = confirmation.findViewById(R.id.message);
+        TextView text = confirmation.get().findViewById(R.id.message);
         text.setText(msg);
 
         AlertDialog.Builder dialog = new AlertDialog.Builder(c);
         alert = dialog.create();
-        alert.setView(confirmation);
+        alert.setView(confirmation.get());
         alert.setCancelable(false);
         alert.show();
     }

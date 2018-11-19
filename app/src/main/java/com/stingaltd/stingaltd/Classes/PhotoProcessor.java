@@ -38,15 +38,16 @@ public class PhotoProcessor {
             }
         }
 
-        File image = null;
+        File image;
         try {
             image = File.createTempFile(
-                    Common.GetFileName(), /* prefix */
+                    "TMP_PHOTO",/* prefix */
                     ".jpg",       /* suffix */
                     storageDir           /* directory */
             );
         } catch (IOException e) {
             e.printStackTrace();
+            return null;
         }
 
         return image;
@@ -80,6 +81,10 @@ public class PhotoProcessor {
 
                     ImageData imageData = new ImageData(WorkId, DateCreated, PhotoType, "", PhotoLabel,0,Thumb,LargeImage);
                     Common.SaveObjectAsFile(c, imageData, FilePath);
+                    File f = new File(ImagePath);
+                    if(f.delete()){
+                        Log.d(Common.LOG_TAG, String.format("File deleted %s", f.toString()));
+                    }
                 }catch (IOException | NullPointerException ex)
                 {
                     Log.e(Common.LOG_TAG, ex.getMessage());

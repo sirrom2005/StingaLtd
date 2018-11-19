@@ -18,6 +18,8 @@
     <string name="verify_job_is_complete">Select to verify that task is complete</string>
     <string name="exit_app">Are you sure you want to logout?</string>
     <string name="remove_photo">Are you sure you want to delete this photo?</string>
+    <string name="default_latitude">18.4974984</string>
+    <string name="default_longitude">-77.9171445</string>
 
     <string name="file_provider">com.stingaltd.stingaltd</string>
     <string name="camera_failed">Camera task failed</string>
@@ -27,4 +29,11 @@
     <string name="preference_email_key">com.stingaltd.stingaltd.EMAIL_KEY</string>
     <string name="email">Email</string>
     <string name="phone">Phone</string>
+    <string name="inventory_quantity">Issued:</string>
+    <string name="inventory_used">Amount Used:</string>
+    <string name="inventory">Inventory</string>
+    <string name="expense">Expenses</string>
+    <string name="job_item">Job Item</string>
+    <string name="job_list">Your Job Task</string>
+    <string name="no_record">No record found!!!</string>
 </resources>

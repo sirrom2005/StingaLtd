@@ -24,6 +24,10 @@ public class ImageData implements Serializable {
         Uploaded    = uploaded;
     }
 
+    public void setUploaded(int uploaded) {
+        Uploaded = uploaded;
+    }
+
     public int getJobId() {
         return JobId;
     }

@@ -25,6 +25,7 @@ import com.stingaltd.stingaltd.R;
 import java.io.File;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
+import java.util.Locale;
 
 import static com.stingaltd.stingaltd.Common.Common.convertDpToPixel;
 
@@ -93,15 +94,15 @@ public class LoadImageScroller
 
             @Override
             protected Bitmap doInBackground(Void... voids) {
-                File path = new File(dir, img);
+                String FilePath = "/img/" + img;
+                File path = new File(dir, FilePath);
                 ImageData obj;
                 Bitmap decodedByte = null;
-
+                Log.e(Common.LOG_TAG, path.toString());
                 if(path.exists())
                 {
-                    publishProgress();
                     try {
-                        obj = (ImageData) Common.readObjectFromFile(c, WorkId + "/" + img);
+                        obj = (ImageData) Common.readObjectFromFile(c, WorkId+FilePath);
                         byte[] decodedString = Base64.decode(obj.getThumb(), Base64.NO_WRAP);
                         decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
                     } catch (IOException | ClassNotFoundException ex) {
@@ -132,6 +133,8 @@ public class LoadImageScroller
                         }
                     });
                     progressBar.setVisibility(View.GONE);
+
+                    new UploadImage(c).Upload(String.format(Locale.US, "/%d/img/%s", WorkId, img));
                 }
             }
         };

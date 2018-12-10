@@ -4,6 +4,8 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.location.Location;
+import android.location.LocationListener;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -24,14 +26,12 @@ import android.widget.Toast;
 
 import com.stingaltd.stingaltd.Classes.LoadImageScroller;
 import com.stingaltd.stingaltd.Classes.PhotoProcessor;
-import com.stingaltd.stingaltd.Classes.UploadImage;
 import com.stingaltd.stingaltd.Common.Common;
 import com.stingaltd.stingaltd.Models.JobItem;
 
 import java.io.File;
 import java.io.Serializable;
 import java.util.List;
-import java.util.Map;
 
 import static com.stingaltd.stingaltd.Common.Common.EXPENSE_AMOUNT_ITEM;
 import static com.stingaltd.stingaltd.Common.Common.IMG_POST;
@@ -46,6 +46,7 @@ public class JobItemActivity extends AppCompatActivity
     private static final int REQUEST_TAKE_PHOTO = 1001;
     private static final int MY_PERMISSIONS_REQUEST_STORAGE = 2001;
     private static final int MY_PERMISSIONS_REQUEST_CAMERA  = 2000;
+    private static final int MY_PERMISSIONS_REQUEST_DEVICE_LOCATION = 2020;
 
     private LinearLayout    mPre_image_list,
                             mPost_image_list;
@@ -70,9 +71,14 @@ public class JobItemActivity extends AppCompatActivity
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
 
+        /*mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+        mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+        mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, LOCATION_REFRESH_TIME,
+                LOCATION_REFRESH_DISTANCE, mLocationListener);*/
+
         mPre_image_list         = findViewById(R.id.pre_image_list);
         mPost_image_list        = findViewById(R.id.post_image_list);
-        //Button submit           = findViewById(R.id.submit);
+        Button submit           = findViewById(R.id.submit);
 
         TextView vJobType       = findViewById(R.id.job_type);
         TextView vJobId         = findViewById(R.id.job_id);
@@ -113,13 +119,32 @@ public class JobItemActivity extends AppCompatActivity
             }
         });
 
-        /*submit.setOnClickListener(new View.OnClickListener() {
+        submit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                new UploadImage(getApplicationContext()).Upload();
+
             }
-        });*/
+        });
     }
+
+    private final LocationListener mLocationListener = new LocationListener() {
+        @Override
+        public void onLocationChanged(final Location location) {
+            Log.d(LOG_TAG, location.getLatitude() + " -- " + location.getLongitude() );
+        }
+
+        @Override
+        public void onStatusChanged(String provider, int status, Bundle extras) {
+        }
+
+        @Override
+        public void onProviderEnabled(String provider) {
+        }
+
+        @Override
+        public void onProviderDisabled(String provider) {
+        }
+    };
 
     @Override
     protected void onResume() {
@@ -168,13 +193,21 @@ public class JobItemActivity extends AppCompatActivity
     {
         if(ContextCompat.checkSelfPermission(this,Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED )
         {
-            if( ContextCompat.checkSelfPermission(this,Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED)
+            if( ContextCompat.checkSelfPermission(this,Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED)
             {
-                dispatchTakePictureIntent();
+                //startActivityForResult(new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS), 0);
+                if( ContextCompat.checkSelfPermission(this,Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED)
+                {
+                    dispatchTakePictureIntent();
+                }else{
+                    ActivityCompat.requestPermissions( this,
+                            new String[]{Manifest.permission.CAMERA},
+                            MY_PERMISSIONS_REQUEST_CAMERA);
+                }
             }else{
                 ActivityCompat.requestPermissions( this,
-                    new String[]{Manifest.permission.CAMERA},
-                    MY_PERMISSIONS_REQUEST_CAMERA);
+                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                        MY_PERMISSIONS_REQUEST_DEVICE_LOCATION);
             }
         }else{
              ActivityCompat.requestPermissions( this,
@@ -216,24 +249,30 @@ public class JobItemActivity extends AppCompatActivity
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
+        // If request is cancelled, the result arrays are empty.
         switch (requestCode) {
             case MY_PERMISSIONS_REQUEST_CAMERA:
-                // If request is cancelled, the result arrays are empty.
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     dispatchTakePictureIntent();
                 }
-                break;
+            break;
             case MY_PERMISSIONS_REQUEST_STORAGE:
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     launchCamera();
                 }
-                break;
+            break;
+            case MY_PERMISSIONS_REQUEST_DEVICE_LOCATION:
+                if(grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    launchCamera();
+                }
+            break;
         }
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if(requestCode == REQUEST_TAKE_PHOTO && resultCode == RESULT_OK) {
+            //SaveImageToDisk
             photoProcessor.SavePhotoJsonData(getBaseContext(), mCurrentPhotoPath, mWorkId, mPhotoType, mJobPos, mJobType);
             View v = mPhotoType.equals(Common.IMG_PRE) ? mPre_image_list.getChildAt(mJobPos) : mPost_image_list.getChildAt(mJobPos) ;
             loadImageScroller.LoadImage(v,  String.format("%s%s.json", mJobPos, mPhotoType), true);

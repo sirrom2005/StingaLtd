@@ -7,6 +7,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
@@ -41,7 +42,7 @@ public class FullScreenImage extends AppCompatActivity {
 
         setContentView(R.layout.full_screen_image_activity);
         final ViewPager pager = findViewById(R.id.pager);
-        final TextView pagination = findViewById(R.id.pagination);
+        //final TextView pagination = findViewById(R.id.pagination);
         final FloatingActionButton fab = findViewById(R.id.fab);
 
 
@@ -64,15 +65,15 @@ public class FullScreenImage extends AppCompatActivity {
 
             @Override
             public void onPageSelected(int position){
-                pagination.setText(String.format(Locale.US, "| %d of %d |",(position + 1), mImageList.size()));
+                //pagination.setText(String.format(Locale.US, "| %d of %d |",(position + 1), mImageList.size()));
                 mPosition = position;
             }
 
             @Override
             public void onPageScrollStateChanged(int state){}
         });
+        //pagination.setText(String.format(Locale.US, "| %d of %d |", mPosition+1, mImageList.size()));
 
-        pagination.setText(String.format(Locale.US, "| %d of %d |", mPosition+1, mImageList.size()));
 
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -85,16 +86,16 @@ public class FullScreenImage extends AppCompatActivity {
                     @Override
                     public void onClick(View v) {
                         Log.d(Common.LOG_TAG, mPosition + " " + mImageList.size());
-                        int loc = 0;
+                        //int loc = 0;
                         if(mImageList.size()>0) {
                             deleteImage(mImageList.get(mPosition));
                             MyPagerAdapter.notifyDataSetChanged();
                             if(mImageList.size()>0){
-                                loc = pager.getCurrentItem() + 1;
+                                //loc = pager.getCurrentItem() + 1;
                             }else {
                                 fab.setVisibility(View.GONE);
                             }
-                            pagination.setText(String.format(Locale.US, "| %d of %d |", loc, mImageList.size()));
+                            //pagination.setText(String.format(Locale.US, "| %d of %d |", loc, mImageList.size()));
                         }
                         Common.alert.dismiss();
                     }
@@ -112,7 +113,7 @@ public class FullScreenImage extends AppCompatActivity {
     }
 
     private void deleteImage(String file) {
-        File dir = new File(getFilesDir(), String.valueOf(WorkId));
+        File dir = new File(getFilesDir(), String.valueOf(WorkId)+"/img");
         File path = new File(dir, file);
         if(path.exists()){
             if(path.delete()){
@@ -123,7 +124,7 @@ public class FullScreenImage extends AppCompatActivity {
 
     private void getImageData(int WorkId) {
         mImageList.clear();
-        File dir = new File(getFilesDir(), String.valueOf(WorkId));
+        File dir = new File(getFilesDir(), String.valueOf(WorkId)+"/img");
         for(File file : dir.listFiles()) {
             mImageList.add(file.getName());
         }
@@ -151,14 +152,15 @@ public class FullScreenImage extends AppCompatActivity {
             ImageView imageView = itemView.findViewById(R.id.imageView);
             TextView label = itemView.findViewById(R.id.label);
 
-            Log.d(Common.LOG_TAG,  "Fragment SIZE >> " + mImageList.size());
-
             try {
-                ImageData obj = (ImageData) Common.readObjectFromFile(c, WorkId + "/" + mImageList.get(position));
+                ImageData obj = (ImageData) Common.readObjectFromFile(c, WorkId + "/img/" + mImageList.get(position));
                 byte[] decodedString = Base64.decode(obj.getLargeImage(), Base64.NO_WRAP);
                 Bitmap img = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
                 imageView.setImageBitmap(img);
                 label.setText(obj.getLabel());
+
+
+
             } catch (IOException | ClassNotFoundException ex) {
                 Log.e(Common.LOG_TAG, ex.getMessage());
             }
@@ -174,7 +176,7 @@ public class FullScreenImage extends AppCompatActivity {
 
         @Override
         public void destroyItem(@NonNull ViewGroup container, int position, @NonNull Object object) {
-            container.removeView((RelativeLayout) object);
+            container.removeView((CoordinatorLayout) object);
         }
 
         @Override

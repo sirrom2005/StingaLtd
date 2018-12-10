@@ -4,6 +4,7 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
@@ -12,15 +13,23 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
+import android.util.Base64;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.WindowManager;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -29,7 +38,9 @@ import com.stingaltd.stingaltd.Interface.IAccount;
 import com.stingaltd.stingaltd.Models.Account;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
+import okhttp3.OkHttpClient;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -54,14 +65,15 @@ public class LoginActivity extends AppCompatActivity implements Callback<Account
     private EditText mPasswordView;
     private View mProgressView;
     private View mLoginFormView;
+    private boolean isUp = false;
 
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         // Set up the login form.
         mEmailView = findViewById(R.id.email);
-
         mPasswordView = findViewById(R.id.password);
         mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
@@ -84,8 +96,62 @@ public class LoginActivity extends AppCompatActivity implements Callback<Account
 
         mLoginFormView = findViewById(R.id.login_form);
         mProgressView = findViewById(R.id.login_progress);
+        RelativeLayout window = findViewById(R.id.window);
+
+        /*mEmailView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+                params.addRule((hasFocus)? RelativeLayout.ALIGN_PARENT_TOP : RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
+                params.setMargins(0, (int) Common.convertDpToPixel(100,getApplicationContext()),0,0);
+                mLoginFormView.setLayoutParams(params);
+            }
+        });
+
+        mPasswordView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+                params.addRule((hasFocus)? RelativeLayout.ALIGN_PARENT_TOP : RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
+                params.setMargins(0,(int) Common.convertDpToPixel(100,getApplicationContext()),0,0);
+                mLoginFormView.setLayoutParams(params);
+            }
+        });
+
+        window.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                mEmailView.clearFocus();
+                mPasswordView.clearFocus();
+                InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+                //Find the currently focused view, so we can grab the correct window token from it.
+                View view = getCurrentFocus();
+                //If no view currently has focus, create a new one, just so we can grab a window token from it
+                if (view == null) {
+                    view = new View(getApplicationContext());
+                }
+                imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+                return false;
+            }
+        });*/
     }
 
+    private void animiLogin(boolean hasFocus){
+        if(hasFocus && isUp==false) {
+            Animation up = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.login_up);
+            mLoginFormView.startAnimation(up);
+            isUp = true;
+        }else {
+            Animation up = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.login_down);
+            mLoginFormView.startAnimation(up);
+            isUp = false;
+        }
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+    }
 
     /**
      * Attempts to sign in or register the LoginUser specified by the login form.
@@ -193,7 +259,11 @@ public class LoginActivity extends AppCompatActivity implements Callback<Account
 
         @Override
         protected Boolean doInBackground(Void... params) {
-            start(mEmail,mPassword);
+            if(Common.isInternetAvailable()) {
+                start(mEmail, mPassword);
+            }else {
+                readLoginFile(mEmail, mPassword);
+            }
             return true;
         }
 
@@ -204,14 +274,19 @@ public class LoginActivity extends AppCompatActivity implements Callback<Account
         }
     }
 
-
     public void start(String username, String password) {
+        OkHttpClient okHttpClient = new OkHttpClient().newBuilder()
+                .connectTimeout(10, TimeUnit.SECONDS)
+                .readTimeout(10, TimeUnit.SECONDS)
+                .writeTimeout(10, TimeUnit.SECONDS)
+                .build();
         Gson gson = new GsonBuilder()
                 .setLenient()
                 .create();
 
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(BASE_URL)
+                .client(okHttpClient)
                 .addConverterFactory(GsonConverterFactory.create(gson))
                 .build();
 
@@ -227,9 +302,11 @@ public class LoginActivity extends AppCompatActivity implements Callback<Account
         if (response.body()!=null) {
             try {
                 String email = response.body().getEmail();
+                int id = response.body().getTechnicianId();
                 SharedPreferences sharedPref = getSharedPreferences(getString(R.string.preference_email), MODE_PRIVATE);
                 SharedPreferences.Editor editor = sharedPref.edit();
                 editor.putString(getString(R.string.preference_email_key), email);
+                editor.putInt(getString(R.string.preference_id_key), id);
                 editor.apply();
 
                 Common.SaveObjectAsFile(getApplicationContext(), response.body(), Common.getFileNameFromEmail(email));
@@ -253,7 +330,41 @@ public class LoginActivity extends AppCompatActivity implements Callback<Account
 
     @Override
     public void onFailure(@NonNull Call<Account> call, @NonNull Throwable t) {
+        Toast.makeText(this, t.getMessage(), Toast.LENGTH_LONG ).show();
+        mAuthTask = null;
+        showProgress(false);
         Log.e(LOG_TAG, t.getMessage());
+    }
+
+    private void readLoginFile(String email, String password) {
+        try {
+            Account obj = (Account) Common.readObjectFromFile(getApplicationContext(), Common.getFileNameFromEmail(email));
+            byte[] data = password.getBytes("UTF-8");
+            password = Base64.encodeToString(data, Base64.NO_WRAP);
+
+            if(obj.getPass().equals(password)){
+                SharedPreferences sharedPref = getSharedPreferences(getString(R.string.preference_email), MODE_PRIVATE);
+                SharedPreferences.Editor editor = sharedPref.edit();
+                editor.putString(getString(R.string.preference_email_key), email);
+                editor.putInt(getString(R.string.preference_id_key), obj.getTechnicianId());
+                editor.apply();
+
+                Intent intent = new Intent(this, MainActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(intent);
+            }else{
+                this.runOnUiThread(new Runnable() {
+                    public void run() {
+                        mPasswordView.setError(getString(R.string.error_incorrect_login));
+                        mPasswordView.requestFocus();
+                        mAuthTask = null;
+                        showProgress(false);
+                    }
+                });
+            }
+        } catch (IOException | ClassNotFoundException ex) {
+            Toast.makeText(this, ex.getMessage(), Toast.LENGTH_LONG ).show();
+        }
     }
 }
 

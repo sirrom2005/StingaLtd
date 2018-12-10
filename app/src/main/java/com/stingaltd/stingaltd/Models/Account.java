@@ -12,6 +12,7 @@ public class Account implements Serializable {
     private String fname;
     private String lname;
     private String email;
+    private String pass;
     private String mobile_number;
     private List<Expenses> expenses = new ArrayList<>();
     private Map<String, String[]> gallery_lable = new HashMap<>();
@@ -28,6 +29,10 @@ public class Account implements Serializable {
 
     public String getEmail() {
         return email;
+    }
+
+    public String getPass() {
+        return pass;
     }
 
     public String getMobileNumber() {

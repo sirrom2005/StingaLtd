@@ -23,41 +23,45 @@ public class UploadImage {
         this.c = c;
     }
 
-    public void Upload() {
-        @SuppressLint("StaticFieldLeak")
-        AsyncTask<Void, Void, String> task = new AsyncTask<Void, Void, String>() {
+    public void Upload(final String filename) {
+        @SuppressLint("StaticFieldLeak") final AsyncTask<Void, Void, String> task = new AsyncTask<Void, Void, String>() {
             @Override
             protected String doInBackground(Void... voids) {
                 final OkHttpClient client = new OkHttpClient();
 
                 try
                 {
-                    ImageData obj = (ImageData) Common.readObjectFromFile(c, "/1/0_pre.json");
+                    ImageData obj = (ImageData) Common.readObjectFromFile(c, filename);
 
-                    RequestBody requestBody = new FormBody.Builder()
-                            .add("JobId",       String.valueOf(obj.getJobId()))
-                            .add("DateCreated", obj.getDateCreated())
-                            .add("PhotoType",   obj.getPhotoType())
-                            .add("Location",    obj.getLocation())
-                            .add("Label",       obj.getLabel())
-                            .add("Thumb",       obj.getThumb())
-                            .add("LargeImage",  obj.getLargeImage())
-                            .build();
+                    if(obj.Uploaded()==0)
+                    {
+                        RequestBody requestBody = new FormBody.Builder()
+                                .add("JobId",       String.valueOf(obj.getJobId()))
+                                .add("DateCreated", obj.getDateCreated())
+                                .add("PhotoType",   obj.getPhotoType())
+                                .add("Location",    obj.getLocation())
+                                .add("Label",       obj.getLabel())
+                                .add("Thumb",       obj.getThumb())
+                                .add("LargeImage",  obj.getLargeImage())
+                                .build();
 
-                    final Request request = new Request.Builder()
-                            .url(Common.BASE_URL + "upload_image.php")
-                            .post(requestBody)
-                            .build();
+                        final Request request = new Request.Builder()
+                                .url(Common.BASE_URL + "upload_image.php")
+                                .post(requestBody)
+                                .build();
 
-                    try{
-                        Response response   = client.newCall(request).execute();
-                        String body         = null;
-                        if (response.body() != null) {
-                            body = response.body().string();
+                        try {
+                            Response response = client.newCall(request).execute();
+                            String body = null;
+                            if (response.body() != null) {
+                                body = response.body().string();
+                                obj.setUploaded(1);
+                                Common.SaveObjectAsFile(c, obj, filename);
+                            }
+                            Log.e(Common.LOG_TAG, body);
+                        } catch (IOException e) {
+                            e.printStackTrace();
                         }
-                        Log.e(Common.LOG_TAG, body);
-                    } catch(IOException e) {
-                        e.printStackTrace();
                     }
                 }catch (IOException | ClassNotFoundException ex) {
                     Log.e(Common.LOG_TAG, ex.getMessage());

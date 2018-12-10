@@ -62,6 +62,16 @@
         <item name="android:background">@drawable/login_button_press</item>
     </style>
 
+    <style name="imgComment" parent="android:style/Widget.Material.Button.Borderless">
+        <item name="android:textStyle">bold</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:paddingLeft">25dp</item>
+        <item name="android:paddingRight">25dp</item>
+        <item name="android:textColor">@android:color/black</item>
+        <item name="android:background">@drawable/comment_button_press</item>
+    </style>
+
     <style name="AppTheme.TransparentActionBar" parent="Theme.AppCompat.Light.DarkActionBar" >
         <item name="android:color">@android:color/white</item>
         <item name="android:windowActionBarOverlay">true</item>

@@ -64,8 +64,8 @@ public class PhotoProcessor {
                     float angle         = GetImageRotation(ImagePath);
                     Bitmap bitmap       = BitmapFactory.decodeFile(ImagePath);
                     String LargeImage   = GetImage(bitmap, angle, 2000);
-                    String Thumb        = GetImage(bitmap, angle, 240);
-                    String FilePath     = String.format("/%s/%s%s.json",WorkId, JobPos, PhotoType);
+                    String Thumb        = GetImage(bitmap, angle, 200);
+                    String FilePath     = String.format("/%s/img/%s%s.json",WorkId, JobPos, PhotoType);
 
                     File dir = new File(c.getFilesDir(),String.valueOf(WorkId));
                     if(!dir.exists()){
@@ -74,12 +74,19 @@ public class PhotoProcessor {
                         }
                     }
 
+                    File imgDir = new File(dir,"img");
+                    if(!imgDir.exists()){
+                        if(imgDir.mkdir()){
+                            Log.d(Common.LOG_TAG, String.format("Directory created %s", imgDir));
+                        }
+                    }
+
                     //get list of jo0b type from account just type list
                     String PhotoLabel = Objects.requireNonNull(Common.getAccount(c).getGalleryLable().get(JobType))[JobPos];
 
                     String DateCreated = new SimpleDateFormat("yyyyMMddHHmmss", Locale.US).format(new Date());
-
-                    ImageData imageData = new ImageData(WorkId, DateCreated, PhotoType, "", PhotoLabel,0,Thumb,LargeImage);
+                    Log.d(Common.LOG_TAG, String.format("location %s", Common.getLocation(c)));
+                    ImageData imageData = new ImageData(WorkId, DateCreated, PhotoType, Common.getLocation(c), PhotoLabel,0,Thumb,LargeImage);
                     Common.SaveObjectAsFile(c, imageData, FilePath);
                     File f = new File(ImagePath);
                     if(f.delete()){
@@ -133,8 +140,10 @@ public class PhotoProcessor {
 
     private String GetImage(Bitmap source, float angle, int width)
     {
+        Log.e(LOG_TAG, source.getWidth() + " - " + " - " + angle + " - " + width);
         Matrix matrix = new Matrix();
         if(source.getWidth() > width){
+            Log.e(LOG_TAG, source.getWidth() + " - " + " - " + angle + " - " + width);
             float scale  = ((float) width)  / source.getWidth();
             matrix.postScale(scale, scale);
         }

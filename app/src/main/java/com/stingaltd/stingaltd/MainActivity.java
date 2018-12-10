@@ -1,6 +1,8 @@
 package com.stingaltd.stingaltd;
 
 import android.app.Activity;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -21,11 +23,16 @@ import com.stingaltd.stingaltd.Adapter.JobItemAdapter;
 import com.stingaltd.stingaltd.Apis._JobItem;
 import com.stingaltd.stingaltd.Common.Common;
 import com.stingaltd.stingaltd.Models.Account;
+import com.stingaltd.stingaltd.Models.JobItem;
+
+import java.io.IOException;
+import java.util.List;
 
 import static com.stingaltd.stingaltd.Common.Common.LOG_TAG;
 
 public class MainActivity extends AppCompatActivity
 {
+    private static Context c;
     private static Account mUser;
     private static JobItemAdapter jobItemAdapter;
 
@@ -62,6 +69,7 @@ public class MainActivity extends AppCompatActivity
         public void onCreate(@Nullable Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
             mActivity = getActivity();
+            c = mActivity.getBaseContext();
         }
 
         @Override
@@ -74,8 +82,17 @@ public class MainActivity extends AppCompatActivity
             recyclerView.setAdapter(jobItemAdapter);
             recyclerView.setLayoutManager(new LinearLayoutManager(mActivity));
 
-            Log.e(LOG_TAG, "HERE");
-            new ExecApi().execute();
+            if(Common.isInternetAvailable()) {
+                new ExecApi().execute();
+            }else{
+                try {
+                    List<JobItem> obj = (List<JobItem>) Common.readObjectFromFile(getContext(), Common.getUserJobsFileName(getContext()));
+                    jobItemAdapter.loadData(obj);
+                    jobItemAdapter.notifyDataSetChanged();
+                } catch (IOException | ClassNotFoundException ex) {
+                    Log.e(LOG_TAG, ex.getMessage());
+                }
+            }
             return viewRoot;
         }
     }
@@ -105,7 +122,7 @@ public class MainActivity extends AppCompatActivity
     {
         @Override
         protected Boolean doInBackground(Void... voids) {
-            new _JobItem().start(mUser.getTechnicianId(), jobItemAdapter);
+            new _JobItem().start(c, mUser.getTechnicianId(), jobItemAdapter);
             return null;
         }
     }

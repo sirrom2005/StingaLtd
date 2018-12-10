@@ -1,118 +1,142 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
-xmlns:android="http://schemas.android.com/apk/res/android"
-xmlns:tools="http://schemas.android.com/tools"
-android:orientation="vertical"
-android:layout_width="match_parent"
-android:layout_height="match_parent"
-android:background="#f4f4f4"
-tools:context=".JobItemActivity">
-    <TextView
-        android:id="@+id/label"
-        android:text="@string/app_name"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:paddingTop="55dp"
-        android:paddingStart="15dp"
-        android:paddingEnd="0dp"
-        android:textColor="@android:color/white"
-        android:layout_width="match_parent"
-        android:layout_height="200dp"
-        android:background="@drawable/activity_background"/>
-
-    <android.support.v7.widget.Toolbar
-        android:id="@+id/toolbar"
-        android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"/>
-
-        <android.support.v4.widget.NestedScrollView
+<android.support.design.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    android:background="#f4f4f4"
+    tools:context=".JobItemActivity">
+    <RelativeLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+        <TextView
+            android:id="@+id/label"
+            android:text="@string/app_name"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:paddingTop="55dp"
+            android:paddingStart="15dp"
+            android:paddingEnd="0dp"
+            android:textColor="@android:color/white"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginTop="-115dp"
-            android:layout_below="@id/label">
+            android:layout_height="200dp"
+            android:background="@drawable/activity_background"/>
 
-        <RelativeLayout
-            android:orientation="vertical"
+        <android.support.v7.widget.Toolbar
+            android:id="@+id/toolbar"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="?attr/actionBarSize"/>
 
-            <include android:id="@+id/task" layout="@layout/task_layout"/>
-
-            <Button
-                android:id="@+id/inventory"
-                android:text="@string/inventory"
-                android:textColor="@android:color/white"
-                android:textAlignment="textEnd"
-                android:paddingEnd="8dp"
-                android:paddingStart="0dp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_toStartOf="@id/blank"
-                android:background="@drawable/task_left_button_press"
-                android:layout_below="@id/task"/>
-            <View
-                android:id="@+id/blank"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/task"
-                android:layout_centerInParent="true"/>
-            <Button
-                android:id="@+id/expense"
-                android:text="@string/expense"
-                android:textColor="@android:color/white"
-                android:textAlignment="textStart"
-                android:paddingStart="10dp"
-                android:paddingEnd="0dp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@drawable/task_right_button_press"
-                android:layout_toEndOf="@id/blank"
-                android:layout_below="@id/task"/>
-
-            <HorizontalScrollView
-                android:id="@+id/pre_view"
-                android:scrollbars="none"
-                android:layout_marginTop="5dp"
-                android:layout_marginBottom="5dp"
-                android:padding="5dp"
-                android:background="@android:color/white"
+            <android.support.v4.widget.NestedScrollView
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/inventory">
-                <LinearLayout
-                    android:id="@+id/pre_image_list"
-                    android:orientation="horizontal"
-                    android:padding="5dp"
+                android:layout_height="match_parent"
+                android:layout_marginTop="-115dp"
+                android:layout_below="@id/label">
+
+            <RelativeLayout
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <include android:id="@+id/task" layout="@layout/task_layout"/>
+
+                <Button
+                    android:id="@+id/inventory"
+                    android:text="@string/inventory"
+                    android:textColor="@android:color/white"
+                    android:textAlignment="textEnd"
+                    android:paddingEnd="8dp"
+                    android:paddingStart="0dp"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"/>
-            </HorizontalScrollView>
-
-            <HorizontalScrollView
-                android:id="@+id/post_view"
-                android:scrollbars="none"
-                android:layout_marginTop="5dp"
-                android:layout_marginBottom="5dp"
-                android:padding="5dp"
-                android:background="@android:color/white"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/pre_view">
-                <LinearLayout
-                    android:id="@+id/post_image_list"
-                    android:orientation="horizontal"
-                    android:padding="5dp"
+                    android:layout_height="wrap_content"
+                    android:layout_toStartOf="@id/blank"
+                    android:background="@drawable/task_left_button_press"
+                    android:layout_below="@id/task"/>
+                <View
+                    android:id="@+id/blank"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/task"
+                    android:layout_centerInParent="true"/>
+                <Button
+                    android:id="@+id/expense"
+                    android:text="@string/expense"
+                    android:textColor="@android:color/white"
+                    android:textAlignment="textStart"
+                    android:paddingStart="10dp"
+                    android:paddingEnd="0dp"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"/>
-            </HorizontalScrollView>
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/task_right_button_press"
+                    android:layout_toEndOf="@id/blank"
+                    android:layout_below="@id/task"/>
 
-            <!--Button
-                android:id="@+id/submit"
-                android:text="@string/submit"
-                android:layout_gravity="center"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                style="@style/LoginBtnStyle"
-                android:layout_below="@+id/post_view"/-->
-        </RelativeLayout>
-    </android.support.v4.widget.NestedScrollView>
-</RelativeLayout>
+                <HorizontalScrollView
+                    android:id="@+id/pre_view"
+                    android:scrollbars="none"
+                    android:layout_marginTop="5dp"
+                    android:layout_marginBottom="5dp"
+                    android:padding="5dp"
+                    android:background="@android:color/white"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/inventory">
+                    <LinearLayout
+                        android:id="@+id/pre_image_list"
+                        android:orientation="horizontal"
+                        android:padding="5dp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+                </HorizontalScrollView>
+
+                <HorizontalScrollView
+                    android:id="@+id/post_view"
+                    android:scrollbars="none"
+                    android:layout_marginTop="5dp"
+                    android:layout_marginBottom="5dp"
+                    android:padding="5dp"
+                    android:background="@android:color/white"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/pre_view">
+                    <LinearLayout
+                        android:id="@+id/post_image_list"
+                        android:orientation="horizontal"
+                        android:padding="5dp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+                </HorizontalScrollView>
+
+                <RelativeLayout
+                    android:id="@+id/note_area"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@android:color/white"
+                    android:layout_below="@id/post_view">
+                        <EditText
+                            android:id="@+id/editText"
+                            android:layout_width="match_parent"
+                            android:layout_height="100dp"
+                            android:background="@drawable/border_background"
+                            android:gravity="top"
+                            android:ems="10"
+                            android:hint="@string/technician_note"
+                            android:inputType="textMultiLine"
+                            android:layout_margin="10dp"
+                            android:autofillHints="@string/technician_note" />
+                    <Button
+                        android:id="@+id/submit"
+                        android:text="@string/job_complete"
+                        android:layout_gravity="center"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="10dp"
+                        style="@style/LoginBtnStyle"
+                        android:layout_centerHorizontal="true"
+                        android:layout_below="@+id/editText"/>
+                </RelativeLayout>
+            </RelativeLayout>
+        </android.support.v4.widget.NestedScrollView>
+    </RelativeLayout>
+</android.support.design.widget.CoordinatorLayout>

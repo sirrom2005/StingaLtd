@@ -4,6 +4,7 @@ import java.io.Serializable;
 
 public class ImageData implements Serializable {
     private static final long serialVersionUID = 102L;
+    //The id colume of the database
     private int JobId;
     private String DateCreated;
     private String PhotoType;

@@ -70,27 +70,28 @@ public class PhotoProcessor {
                     File dir = new File(c.getFilesDir(),String.valueOf(WorkId));
                     if(!dir.exists()){
                         if(dir.mkdir()){
-                            Log.d(Common.LOG_TAG, String.format("Directory created %s", dir));
+                            Log.d(Common.LOG_TAG, String.format("%s >> Directory created %s", "PhotoProcessor", dir));
                         }
                     }
 
                     File imgDir = new File(dir,"img");
                     if(!imgDir.exists()){
                         if(imgDir.mkdir()){
-                            Log.d(Common.LOG_TAG, String.format("Directory created %s", imgDir));
+                            Log.d(Common.LOG_TAG, String.format("%s >> Directory created %s", "PhotoProcessor", imgDir));
                         }
                     }
 
-                    //get list of jo0b type from account just type list
+                    //get list of job type from account just type list
                     String PhotoLabel = Objects.requireNonNull(Common.getAccount(c).getGalleryLable().get(JobType))[JobPos];
 
                     String DateCreated = new SimpleDateFormat("yyyyMMddHHmmss", Locale.US).format(new Date());
-                    Log.d(Common.LOG_TAG, String.format("location %s", Common.getLocation(c)));
+                    Log.d(Common.LOG_TAG, String.format("%s >> Location %s", "PhotoProcessor", Common.getLocation(c)));
                     ImageData imageData = new ImageData(WorkId, DateCreated, PhotoType, Common.getLocation(c), PhotoLabel,0,Thumb,LargeImage);
                     Common.SaveObjectAsFile(c, imageData, FilePath);
                     File f = new File(ImagePath);
                     if(f.delete()){
-                        Log.d(Common.LOG_TAG, String.format("File deleted %s", f.toString()));
+                        //Delete photo image
+                        Log.d(Common.LOG_TAG, String.format("%s >> File deleted %s", "PhotoProcessor", f.toString()));
                     }
                 }catch (IOException | NullPointerException ex)
                 {
@@ -140,10 +141,8 @@ public class PhotoProcessor {
 
     private String GetImage(Bitmap source, float angle, int width)
     {
-        Log.e(LOG_TAG, source.getWidth() + " - " + " - " + angle + " - " + width);
         Matrix matrix = new Matrix();
         if(source.getWidth() > width){
-            Log.e(LOG_TAG, source.getWidth() + " - " + " - " + angle + " - " + width);
             float scale  = ((float) width)  / source.getWidth();
             matrix.postScale(scale, scale);
         }

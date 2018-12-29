@@ -55,7 +55,7 @@ public class JobItemAdapter extends RecyclerView.Adapter<JobItemAdapter.ViewHold
             vHolder.vJobType.setText(item.getJob_type());
             vHolder.vJobId.setText(String.format("%s%s", mContext.getString(R.string.work_item), item.getJob_id()));
             vHolder.vJobItem.setText(item.getTitle());
-            vHolder.vAssignDate.setText(item.getAssign_date());
+            vHolder.vAssignDate.setText(item.getStartDate());
             vHolder.vCustomer.setText(Html.fromHtml(item.getCustomer()));
 
             vHolder.vHolder.setOnClickListener(new View.OnClickListener() {

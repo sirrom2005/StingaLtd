@@ -58,7 +58,7 @@ public class LoadImageScroller
 
         mPre_image_list.removeAllViews();
         mPost_image_list.removeAllViews();
-        for(int i =0; i<keys.length; i++)
+        for(int i=0; i<keys.length; i++)
         {
             View placeHolder_pre = inflater.inflate(R.layout.gallery_place_holder, null);
             View placeHolder_post = inflater.inflate(R.layout.gallery_place_holder, null);
@@ -98,7 +98,6 @@ public class LoadImageScroller
                 File path = new File(dir, FilePath);
                 ImageData obj;
                 Bitmap decodedByte = null;
-                Log.e(Common.LOG_TAG, path.toString());
                 if(path.exists())
                 {
                     try {
@@ -133,8 +132,6 @@ public class LoadImageScroller
                         }
                     });
                     progressBar.setVisibility(View.GONE);
-
-                    new UploadImage(c).Upload(String.format(Locale.US, "/%d/img/%s", WorkId, img));
                 }
             }
         };

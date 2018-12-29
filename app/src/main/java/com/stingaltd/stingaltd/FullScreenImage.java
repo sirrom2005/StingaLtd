@@ -22,6 +22,7 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.stingaltd.stingaltd.Classes.UploadImage;
 import com.stingaltd.stingaltd.Common.Common;
 import com.stingaltd.stingaltd.Models.ImageData;
 
@@ -85,10 +86,12 @@ public class FullScreenImage extends AppCompatActivity {
                     @SuppressLint("RestrictedApi")
                     @Override
                     public void onClick(View v) {
-                        Log.d(Common.LOG_TAG, mPosition + " " + mImageList.size());
                         //int loc = 0;
-                        if(mImageList.size()>0) {
-                            deleteImage(mImageList.get(mPosition));
+                        if(mImageList.size()>0)
+                        {
+                            String file = mImageList.get(mPosition);
+                            deleteImage(file);
+
                             MyPagerAdapter.notifyDataSetChanged();
                             if(mImageList.size()>0){
                                 //loc = pager.getCurrentItem() + 1;
@@ -114,9 +117,9 @@ public class FullScreenImage extends AppCompatActivity {
 
     private void deleteImage(String file) {
         File dir = new File(getFilesDir(), String.valueOf(WorkId)+"/img");
-        File path = new File(dir, file);
-        if(path.exists()){
-            if(path.delete()){
+        File _file = new File(dir, file);
+        if(_file.exists()){
+            if(_file.renameTo(new File(dir,String.format("%s.%s", "delete", System.currentTimeMillis())))){
                 mImageList.remove(file);
             }
         }
@@ -158,8 +161,6 @@ public class FullScreenImage extends AppCompatActivity {
                 Bitmap img = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
                 imageView.setImageBitmap(img);
                 label.setText(obj.getLabel());
-
-
 
             } catch (IOException | ClassNotFoundException ex) {
                 Log.e(Common.LOG_TAG, ex.getMessage());

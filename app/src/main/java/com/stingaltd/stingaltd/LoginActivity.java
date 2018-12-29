@@ -4,7 +4,6 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
@@ -16,14 +15,11 @@ import android.text.TextUtils;
 import android.util.Base64;
 import android.util.Log;
 import android.view.KeyEvent;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.inputmethod.EditorInfo;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
@@ -31,16 +27,25 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.firebase.iid.InstanceIdResult;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.stingaltd.stingaltd.Common.Common;
 import com.stingaltd.stingaltd.Interface.IAccount;
 import com.stingaltd.stingaltd.Models.Account;
+import com.stingaltd.stingaltd.SyncAdapter.SyncAdapter;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
+import okhttp3.FormBody;
 import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -49,6 +54,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 import static com.stingaltd.stingaltd.Common.Common.BASE_URL;
 import static com.stingaltd.stingaltd.Common.Common.LOG_TAG;
+import static com.stingaltd.stingaltd.Common.Common.TIME_OUT;
 
 /**
  * A login screen that offers login via email/password.
@@ -97,6 +103,8 @@ public class LoginActivity extends AppCompatActivity implements Callback<Account
         mLoginFormView = findViewById(R.id.login_form);
         mProgressView = findViewById(R.id.login_progress);
         RelativeLayout window = findViewById(R.id.window);
+
+        SyncAdapter.initializeSyncAdapter(this);
 
         /*mEmailView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
@@ -262,9 +270,23 @@ public class LoginActivity extends AppCompatActivity implements Callback<Account
             if(Common.isInternetAvailable()) {
                 start(mEmail, mPassword);
             }else {
-                readLoginFile(mEmail, mPassword);
+                try {
+                    readLoginFile(mEmail, mPassword);
+                } catch (IOException | ClassNotFoundException ex) {
+                    Log.e(LOG_TAG, ex.getMessage());
+                    return false;
+                }
             }
             return true;
+        }
+
+        @Override
+        protected void onPostExecute(Boolean aBoolean) {
+            super.onPostExecute(aBoolean);
+            if(!aBoolean){
+                Toast.makeText(getBaseContext(), "No internet connection found", Toast.LENGTH_LONG).show();
+                this.onCancelled();
+            }
         }
 
         @Override
@@ -276,9 +298,9 @@ public class LoginActivity extends AppCompatActivity implements Callback<Account
 
     public void start(String username, String password) {
         OkHttpClient okHttpClient = new OkHttpClient().newBuilder()
-                .connectTimeout(10, TimeUnit.SECONDS)
-                .readTimeout(10, TimeUnit.SECONDS)
-                .writeTimeout(10, TimeUnit.SECONDS)
+                .connectTimeout(TIME_OUT, TimeUnit.MILLISECONDS)
+                .readTimeout(TIME_OUT, TimeUnit.MILLISECONDS)
+                .writeTimeout(TIME_OUT, TimeUnit.MILLISECONDS)
                 .build();
         Gson gson = new GsonBuilder()
                 .setLenient()
@@ -303,6 +325,7 @@ public class LoginActivity extends AppCompatActivity implements Callback<Account
             try {
                 String email = response.body().getEmail();
                 int id = response.body().getTechnicianId();
+                registerFbToken(email);
                 SharedPreferences sharedPref = getSharedPreferences(getString(R.string.preference_email), MODE_PRIVATE);
                 SharedPreferences.Editor editor = sharedPref.edit();
                 editor.putString(getString(R.string.preference_email_key), email);
@@ -336,35 +359,89 @@ public class LoginActivity extends AppCompatActivity implements Callback<Account
         Log.e(LOG_TAG, t.getMessage());
     }
 
-    private void readLoginFile(String email, String password) {
-        try {
-            Account obj = (Account) Common.readObjectFromFile(getApplicationContext(), Common.getFileNameFromEmail(email));
-            byte[] data = password.getBytes("UTF-8");
-            password = Base64.encodeToString(data, Base64.NO_WRAP);
+    private void readLoginFile(String email, String password) throws IOException, ClassNotFoundException {
+        Account obj = (Account) Common.readObjectFromFile(getApplicationContext(), Common.getFileNameFromEmail(email));
+        byte[] data = password.getBytes("UTF-8");
+        password = Base64.encodeToString(data, Base64.NO_WRAP);
 
-            if(obj.getPass().equals(password)){
-                SharedPreferences sharedPref = getSharedPreferences(getString(R.string.preference_email), MODE_PRIVATE);
-                SharedPreferences.Editor editor = sharedPref.edit();
-                editor.putString(getString(R.string.preference_email_key), email);
-                editor.putInt(getString(R.string.preference_id_key), obj.getTechnicianId());
-                editor.apply();
+        if(obj.getPass().equals(password)){
+            SharedPreferences sharedPref = getSharedPreferences(getString(R.string.preference_email), MODE_PRIVATE);
+            SharedPreferences.Editor editor = sharedPref.edit();
+            editor.putString(getString(R.string.preference_email_key), email);
+            editor.putInt(getString(R.string.preference_id_key), obj.getTechnicianId());
+            editor.apply();
 
-                Intent intent = new Intent(this, MainActivity.class);
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                startActivity(intent);
-            }else{
-                this.runOnUiThread(new Runnable() {
-                    public void run() {
-                        mPasswordView.setError(getString(R.string.error_incorrect_login));
-                        mPasswordView.requestFocus();
-                        mAuthTask = null;
-                        showProgress(false);
-                    }
-                });
-            }
-        } catch (IOException | ClassNotFoundException ex) {
-            Toast.makeText(this, ex.getMessage(), Toast.LENGTH_LONG ).show();
+            Intent intent = new Intent(this, MainActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
+        }else{
+            this.runOnUiThread(new Runnable() {
+                public void run() {
+                    mPasswordView.setError(getString(R.string.error_incorrect_login));
+                    mPasswordView.requestFocus();
+                    mAuthTask = null;
+                    showProgress(false);
+                }
+            });
         }
+    }
+
+    private void registerFbToken(final String email) {
+        if(Common.isInternetAvailable()) {
+            File f = new File(getApplicationContext().getFilesDir(), Common.getFileNameFromEmail(email));
+            if (!f.exists()) {
+                FirebaseInstanceId.getInstance().getInstanceId()
+                        .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
+                            @Override
+                            public void onComplete(@NonNull Task<InstanceIdResult> task) {
+                                if (!task.isSuccessful()) {
+                                    Log.w(Common.LOG_TAG, "getInstanceId failed", task.getException());
+                                    return;
+                                }
+                                // Get new Instance ID token
+                                String token = task.getResult().getToken();
+                                sendRegistrationToServer(email, token);
+                            }
+                        });
+            }
+        }
+    }
+
+    private void sendRegistrationToServer(final String Email, final String token)
+    {
+        @SuppressLint("StaticFieldLeak")
+        AsyncTask<Void, Void, Boolean> task = new AsyncTask<Void, Void, Boolean>()
+        {
+            @Override
+            protected Boolean doInBackground(Void... voids) {
+                OkHttpClient client = new OkHttpClient();
+                RequestBody requestBody = new FormBody.Builder()
+                        .add("email", Email)
+                        .add("token", token)
+                        .build();
+
+                final Request request = new Request.Builder()
+                        .url(Common.BASE_URL + "add_user_token")
+                        .post(requestBody)
+                        .build();
+
+                try{
+                    okhttp3.Response response = client.newCall(request).execute();
+                    String body = null;
+                    if (response.body() != null) {
+                        body = response.body().string();
+                    }
+                    Log.d(LOG_TAG, body);
+                } catch(
+                        IOException ex)
+
+                {
+                    Log.e(LOG_TAG, ex.getMessage());
+                }
+                return null;
+            }
+        };
+        task.execute();
     }
 }
 

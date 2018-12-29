@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "952822528767",
+    "firebase_url": "https://stingaltd-e72ff.firebaseio.com",
+    "project_id": "stingaltd-e72ff",
+    "storage_bucket": "stingaltd-e72ff.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:952822528767:android:4afce2706d82684e",
+        "android_client_info": {
+          "package_name": "com.stingaltd.stingaltd"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "952822528767-3equ75s5bekg5cn5ko5tqqp9dqa2eck3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBGQ5o-dN90-kZpkf41CX6MCNpQ_b4tdhw"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

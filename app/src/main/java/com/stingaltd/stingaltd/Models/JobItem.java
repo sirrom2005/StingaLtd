@@ -2,9 +2,7 @@ package com.stingaltd.stingaltd.Models;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class JobItem implements Serializable {
     private static final long serialVersionUID = 100L;
@@ -14,7 +12,7 @@ public class JobItem implements Serializable {
     private String title;
     private String description;
     private String customer;
-    private String date_added;
+    private String start_date;
     private int complete;
     private int technician_id;
     private List<Inventory> inventory = new ArrayList<>();
@@ -44,8 +42,8 @@ public class JobItem implements Serializable {
         return customer;
     }
 
-    public String getAssign_date() {
-        return date_added;
+    public String getStartDate() {
+        return start_date;
     }
 
     public int getComplete() {

@@ -9,12 +9,16 @@ import com.stingaltd.stingaltd.Common.Common;
 import com.stingaltd.stingaltd.Models.ImageData;
 
 import java.io.IOException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 import okhttp3.FormBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+
+import static com.stingaltd.stingaltd.Common.Common.TIME_OUT;
 
 public class UploadImage {
     private Context c;
@@ -23,53 +27,84 @@ public class UploadImage {
         this.c = c;
     }
 
-    public void Upload(final String filename) {
-        @SuppressLint("StaticFieldLeak") final AsyncTask<Void, Void, String> task = new AsyncTask<Void, Void, String>() {
-            @Override
-            protected String doInBackground(Void... voids) {
-                final OkHttpClient client = new OkHttpClient();
+    public boolean Upload(String FilePath)
+    {
+        try{
+            ImageData obj = (ImageData) Common.readObjectFromFile(c, FilePath);
+            if(obj.Uploaded()==0)
+            {
+                Log.e(Common.LOG_TAG, "Attempting to upload >> " + FilePath);
+                RequestBody requestBody = new FormBody.Builder()
+                        .add("JobId",       String.valueOf(obj.getJobId()))
+                        .add("DateCreated", obj.getDateCreated())
+                        .add("PhotoType",   obj.getPhotoType())
+                        .add("Location",    obj.getLocation())
+                        .add("Label",       obj.getLabel())
+                        .add("Thumb",       obj.getThumb())
+                        .add("LargeImage",  obj.getLargeImage())
+                        .build();
 
-                try
-                {
-                    ImageData obj = (ImageData) Common.readObjectFromFile(c, filename);
+                final Request request = new Request.Builder()
+                        .url(Common.BASE_URL + "upload_image.php")
+                        .post(requestBody)
+                        .build();
 
-                    if(obj.Uploaded()==0)
-                    {
-                        RequestBody requestBody = new FormBody.Builder()
-                                .add("JobId",       String.valueOf(obj.getJobId()))
-                                .add("DateCreated", obj.getDateCreated())
-                                .add("PhotoType",   obj.getPhotoType())
-                                .add("Location",    obj.getLocation())
-                                .add("Label",       obj.getLabel())
-                                .add("Thumb",       obj.getThumb())
-                                .add("LargeImage",  obj.getLargeImage())
-                                .build();
-
-                        final Request request = new Request.Builder()
-                                .url(Common.BASE_URL + "upload_image.php")
-                                .post(requestBody)
-                                .build();
-
-                        try {
-                            Response response = client.newCall(request).execute();
-                            String body = null;
-                            if (response.body() != null) {
-                                body = response.body().string();
-                                obj.setUploaded(1);
-                                Common.SaveObjectAsFile(c, obj, filename);
-                            }
-                            Log.e(Common.LOG_TAG, body);
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
+                OkHttpClient client = new OkHttpClient().newBuilder()
+                                        .connectTimeout(TIME_OUT, TimeUnit.MILLISECONDS)
+                                        .readTimeout(TIME_OUT, TimeUnit.MILLISECONDS)
+                                        .writeTimeout(TIME_OUT, TimeUnit.MILLISECONDS)
+                                        .build();
+                Response response = client.newCall(request).execute();
+                if (response.body() != null) {
+                    String rs = response.body().string();
+                    Log.e(Common.LOG_TAG, String.format("%s >> %s", "Response", rs));
+                    if (rs.equals("1")) {
+                        obj.setUploaded(1);
+                        Common.SaveObjectAsFile(c, obj, FilePath);
+                        return true;
                     }
-                }catch (IOException | ClassNotFoundException ex) {
-                    Log.e(Common.LOG_TAG, ex.getMessage());
                 }
-                return null;
             }
-        };
+        }catch (IOException | ClassNotFoundException ex) {
+            Log.e(Common.LOG_TAG, String.format("%s >>>> %s", "UploadImage", ex.getMessage()));
+        }
+        return false;
+    }
 
-        task.execute();
+
+    public boolean DeletePhoto(int id, String dateCreated)
+    {
+        final OkHttpClient client = new OkHttpClient();
+
+        try
+        {
+            RequestBody requestBody = new FormBody.Builder()
+                    .add("imgId", String.valueOf(id))
+                    .add("dateCreated", dateCreated)
+                    .build();
+
+            final Request request = new Request.Builder()
+                    .url(Common.BASE_URL + "delete_image.php")
+                    .post(requestBody)
+                    .build();
+
+            try {
+                Response response = client.newCall(request).execute();
+                if (response.body() != null) {
+                    String rs = response.body().string();
+                    Log.e(Common.LOG_TAG, String.format("%s >> %s", "Response", rs));
+                    if (rs.equals("1")) {
+                        Log.e(Common.LOG_TAG, String.format("Delete Photo >> %s id=>[%d] date=>[%s]", "Image deleted", id, dateCreated));
+                        return true;
+                    }
+                }
+            } catch (IOException ex) {
+                Log.e(Common.LOG_TAG, String.format("%s >> %s", "Delete Photo", ex.getMessage()));
+            }
+
+        }catch (Exception ex) {
+            Log.e(Common.LOG_TAG, String.format("%s >>>> %s", "Delete Photo", ex.getMessage()));
+        }
+        return false;
     }
 }

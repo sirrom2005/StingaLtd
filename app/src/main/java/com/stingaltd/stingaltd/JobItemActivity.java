@@ -4,8 +4,6 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
-import android.location.Location;
-import android.location.LocationListener;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -17,8 +15,11 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -27,9 +28,12 @@ import android.widget.Toast;
 import com.stingaltd.stingaltd.Classes.LoadImageScroller;
 import com.stingaltd.stingaltd.Classes.PhotoProcessor;
 import com.stingaltd.stingaltd.Common.Common;
+import com.stingaltd.stingaltd.Models.Job;
 import com.stingaltd.stingaltd.Models.JobItem;
+import com.stingaltd.stingaltd.SyncAdapter.SyncAdapter;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.List;
 
@@ -37,6 +41,7 @@ import static com.stingaltd.stingaltd.Common.Common.EXPENSE_AMOUNT_ITEM;
 import static com.stingaltd.stingaltd.Common.Common.IMG_POST;
 import static com.stingaltd.stingaltd.Common.Common.IMG_PRE;
 import static com.stingaltd.stingaltd.Common.Common.INVENTORY_ITEM;
+import static com.stingaltd.stingaltd.Common.Common.JOB_FILE_NAME;
 import static com.stingaltd.stingaltd.Common.Common.JOB_ITEM;
 import static com.stingaltd.stingaltd.Common.Common.LOG_TAG;
 import static com.stingaltd.stingaltd.Common.Common.WORK_ID_INTENT;
@@ -51,12 +56,13 @@ public class JobItemActivity extends AppCompatActivity
     private LinearLayout    mPre_image_list,
                             mPost_image_list;
     private PhotoProcessor photoProcessor = new PhotoProcessor();
-    private LoadImageScroller loadImageScroller;
+    private LoadImageScroller mLoadImageScroller;
     private String mCurrentPhotoPath;
     private String mPhotoType;
     private int mWorkId;
     private int mJobPos;
     private String mJobType;
+    private String[] mLabels;
 
     @Override
     protected void onCreate(Bundle savedInstanceState){
@@ -71,14 +77,10 @@ public class JobItemActivity extends AppCompatActivity
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
 
-        /*mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-        mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-        mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, LOCATION_REFRESH_TIME,
-                LOCATION_REFRESH_DISTANCE, mLocationListener);*/
-
         mPre_image_list         = findViewById(R.id.pre_image_list);
         mPost_image_list        = findViewById(R.id.post_image_list);
-        Button submit           = findViewById(R.id.submit);
+        //final EditText JobComment    = findViewById(R.id.job_comment);
+        //Button submit           = findViewById(R.id.submit);
 
         TextView vJobType       = findViewById(R.id.job_type);
         TextView vJobId         = findViewById(R.id.job_id);
@@ -93,10 +95,12 @@ public class JobItemActivity extends AppCompatActivity
         mWorkId  = WorkItem.getId();
         mJobType = WorkItem.getJob_type();
 
+        mLabels = Common.getAccount(getApplicationContext()).getGalleryLable().get(mJobType);
+
         vJobType.setText(WorkItem.getJob_type());
         vJobId.setText(String.format("%s%s", getString(R.string.work_item), WorkItem.getJob_id()));
         vJobItem.setText(WorkItem.getTitle());
-        vAssignDate.setText(WorkItem.getAssign_date());
+        vAssignDate.setText(WorkItem.getStartDate());
         vCustomer.setText(Html.fromHtml(WorkItem.getCustomer()));
 
         vInventory.setOnClickListener(new View.OnClickListener() {
@@ -119,48 +123,53 @@ public class JobItemActivity extends AppCompatActivity
             }
         });
 
-        submit.setOnClickListener(new View.OnClickListener() {
+        /*submit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                try {
+                    //save job comment and close jobs
+                    Common.SaveObjectAsFile(getApplicationContext(), new Job(mWorkId, JobComment.getText().toString()), JOB_FILE_NAME);
+                } catch (IOException ex) {
+                    Log.d(Common.LOG_TAG,  ex.getMessage());
+                }
             }
-        });
+        });*/
     }
 
-    private final LocationListener mLocationListener = new LocationListener() {
-        @Override
-        public void onLocationChanged(final Location location) {
-            Log.d(LOG_TAG, location.getLatitude() + " -- " + location.getLongitude() );
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+
+        if (id == R.id.action_refresh) {
+            SyncAdapter.syncImmediately(getApplicationContext(), mWorkId);
         }
 
-        @Override
-        public void onStatusChanged(String provider, int status, Bundle extras) {
-        }
+        return super.onOptionsItemSelected(item);
+    }
 
-        @Override
-        public void onProviderEnabled(String provider) {
-        }
-
-        @Override
-        public void onProviderDisabled(String provider) {
-        }
-    };
+    @Override
+    protected void onStart() {
+        super.onStart();
+        mLoadImageScroller = new LoadImageScroller(getApplicationContext(), mWorkId);
+        mLoadImageScroller.PrepareGalleryLabel(mPre_image_list, mPost_image_list, mLabels);
+        LoadGalleryLabels();
+    }
 
     @Override
     protected void onResume() {
         super.onResume();
-        Log.d(Common.LOG_TAG,  "onResume >> ");
-        LoadGalleryLabels();
     }
 
     private void LoadGalleryLabels()
     {
-        String[] labels = Common.getAccount(getApplicationContext()).getGalleryLable().get(mJobType);
-        loadImageScroller = new LoadImageScroller(getApplicationContext(), mWorkId);
-        loadImageScroller.PrepareGalleryLabel(mPre_image_list, mPost_image_list, labels);
-
         ImageView preBtn, postBtn;
-
         for(int i =0; i<mPre_image_list.getChildCount(); i++){
             preBtn  = mPre_image_list.getChildAt(i).findViewById(R.id.add_btn);
             postBtn = mPost_image_list.getChildAt(i).findViewById(R.id.add_btn);
@@ -184,8 +193,8 @@ public class JobItemActivity extends AppCompatActivity
                 }
             });
 
-            loadImageScroller.LoadImage(mPre_image_list.getChildAt(i),  String.format("%s%s.json", i,Common.IMG_PRE), false);
-            loadImageScroller.LoadImage(mPost_image_list.getChildAt(i), String.format("%s%s.json", i,Common.IMG_POST), false);
+            mLoadImageScroller.LoadImage(mPre_image_list.getChildAt(i) , String.format("%s%s.json", i,Common.IMG_PRE) ,false);
+            mLoadImageScroller.LoadImage(mPost_image_list.getChildAt(i), String.format("%s%s.json", i,Common.IMG_POST),false);
         }
     }
 
@@ -195,7 +204,6 @@ public class JobItemActivity extends AppCompatActivity
         {
             if( ContextCompat.checkSelfPermission(this,Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED)
             {
-                //startActivityForResult(new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS), 0);
                 if( ContextCompat.checkSelfPermission(this,Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED)
                 {
                     dispatchTakePictureIntent();
@@ -272,10 +280,33 @@ public class JobItemActivity extends AppCompatActivity
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if(requestCode == REQUEST_TAKE_PHOTO && resultCode == RESULT_OK) {
-            //SaveImageToDisk
+            //Save image as json data
             photoProcessor.SavePhotoJsonData(getBaseContext(), mCurrentPhotoPath, mWorkId, mPhotoType, mJobPos, mJobType);
-            View v = mPhotoType.equals(Common.IMG_PRE) ? mPre_image_list.getChildAt(mJobPos) : mPost_image_list.getChildAt(mJobPos) ;
-            loadImageScroller.LoadImage(v,  String.format("%s%s.json", mJobPos, mPhotoType), true);
+            //Load Image in view at selected position
+            mLoadImageScroller.LoadImage(
+                    mPhotoType.equals(Common.IMG_PRE) ? mPre_image_list.getChildAt(mJobPos) : mPost_image_list.getChildAt(mJobPos),
+                    String.format("%s%s.json",
+                    mJobPos,
+                    mPhotoType
+                    ), true);
         }
     }
+
+
+    /*public void PostUploadIntent(String imgFileName){
+        int interval = 100;
+        long Hash = System.currentTimeMillis();
+
+        Intent intent = new Intent(this, PhotoReceiver.class);
+        //intent.setAction(Long.toString(Hash));
+        intent.putExtra(POST_WORK_ID, mWorkId);
+
+        Log.d(Common.LOG_TAG, "Hash >> " + Hash);
+
+        PendingIntent mPendingIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        AlarmManager mManager = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
+        mManager.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), interval, mPendingIntent);
+        //mManager.cancel(pendingIntent);
+    }*/
 }

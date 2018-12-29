@@ -115,7 +115,7 @@
                     android:background="@android:color/white"
                     android:layout_below="@id/post_view">
                         <EditText
-                            android:id="@+id/editText"
+                            android:id="@+id/job_comment"
                             android:layout_width="match_parent"
                             android:layout_height="100dp"
                             android:background="@drawable/border_background"
@@ -134,7 +134,7 @@
                         android:layout_marginBottom="10dp"
                         style="@style/LoginBtnStyle"
                         android:layout_centerHorizontal="true"
-                        android:layout_below="@+id/editText"/>
+                        android:layout_below="@+id/job_comment"/>
                 </RelativeLayout>
             </RelativeLayout>
         </android.support.v4.widget.NestedScrollView>

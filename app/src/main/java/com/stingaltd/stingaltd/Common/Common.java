@@ -30,7 +30,7 @@ import java.net.InetAddress;
 import java.util.concurrent.ExecutionException;
 
 public class Common {
-    public static final String LOG_TAG = "stinga";
+    public static final String LOG_TAG = "StingaLog";
     public static final String BASE_URL = "http://104.248.118.6/api/public/";
     public static final String TEMP_PHOTO_PATH = "tmp";
     public static final String JOB_ITEM = "com.stingaltd.stingaltd.JOB_ITEM";
@@ -38,8 +38,13 @@ public class Common {
     public static final String SELECTED_IMG_FILE = "com.stingaltd.stingaltd.filename";
     public static final String WORK_ID_INTENT = "com.stingaltd.stingaltd.work_id";
     public static final String EXPENSE_AMOUNT_ITEM = "com.stingaltd.stingaltd.expense_amount_id";
+    public static final String JOB_FILE_NAME = "job.json";
     public static final String IMG_PRE = "_pre";
     public static final String IMG_POST = "_post";
+    public static final String POST_DATA = "_post_data_";
+    public static final String POST_WORK_ID = "_work_id_";
+    public static final String POST_FILENAME = "_work_id_";
+    public static final int TIME_OUT = 3000;
 
     public static AlertDialog alert= null;
     public static WeakReference<View> confirmation = null;

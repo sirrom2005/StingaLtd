@@ -28,15 +28,16 @@ public class SyncData {
         if(imgDir.exists()){
             for(String FileName : imgDir.list())
             {
-                Log.e(Common.LOG_TAG, String.format(Locale.US, "/%d/img/%s", WorkId, FileName));
-                if (new UploadImage(c).Upload(String.format(Locale.US, "/%d/img/%s", WorkId, FileName))) {
-                    Log.e(Common.LOG_TAG, "Image Uploaded");
-                }
-
-                try {
-                    Thread.sleep(sleep);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+                if(!FileName.contains(Common.DEL_IMG_NAME_PATTERN))
+                {
+                    Log.e(Common.LOG_TAG, String.format(Locale.US, "/%d/img/%s", WorkId, FileName));
+                    if(new UploadImage(c).Upload(String.format(Locale.US, "/%d/img/%s", WorkId, FileName))) {
+                        try {
+                            Thread.sleep(sleep);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
                 }
             }
         }
@@ -52,7 +53,7 @@ public class SyncData {
         List<File> fileList =  new ArrayList<>();
 
         for(File _file : imgDir.listFiles()) {
-            if(_file.getName().contains("delete.")){
+            if(_file.getName().contains(Common.DEL_IMG_NAME_PATTERN)){
                 Log.e(Common.LOG_TAG, _file.getName() + "<<<");
                 fileList.add(_file);
                 try {
@@ -64,7 +65,7 @@ public class SyncData {
             }
         }
 
-        if(!DateCreated.trim().equals("")){
+        if(DateCreated.length() > 10){
             if(new UploadImage(c).DeletePhoto(WorkId, DateCreated)){
                 for(File f : fileList) {
                     if(f.delete()){

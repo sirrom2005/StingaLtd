@@ -119,7 +119,7 @@ public class FullScreenImage extends AppCompatActivity {
         File dir = new File(getFilesDir(), String.valueOf(WorkId)+"/img");
         File _file = new File(dir, file);
         if(_file.exists()){
-            if(_file.renameTo(new File(dir,String.format("%s.%s", "delete", System.currentTimeMillis())))){
+            if(_file.renameTo(new File(dir,String.format("%s%s", Common.DEL_IMG_NAME_PATTERN, System.currentTimeMillis())))){
                 mImageList.remove(file);
             }
         }
@@ -129,7 +129,9 @@ public class FullScreenImage extends AppCompatActivity {
         mImageList.clear();
         File dir = new File(getFilesDir(), String.valueOf(WorkId)+"/img");
         for(File file : dir.listFiles()) {
-            mImageList.add(file.getName());
+            if(!file.getName().contains(Common.DEL_IMG_NAME_PATTERN)){
+                mImageList.add(file.getName());
+            }
         }
     }
 

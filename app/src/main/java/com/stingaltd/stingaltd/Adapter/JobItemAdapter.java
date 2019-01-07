@@ -18,6 +18,7 @@ import com.stingaltd.stingaltd.R;
 import java.util.List;
 
 import static com.stingaltd.stingaltd.Common.Common.JOB_ITEM;
+import static com.stingaltd.stingaltd.Common.Common.JOB_LIST_INDEX;
 
 
 public class JobItemAdapter extends RecyclerView.Adapter<JobItemAdapter.ViewHolder> {
@@ -52,6 +53,10 @@ public class JobItemAdapter extends RecyclerView.Adapter<JobItemAdapter.ViewHold
     public void onBindViewHolder(@NonNull final ViewHolder vHolder, int position) {
         if(getItemViewType(position) == DATA_VIEW) {
             final JobItem item = data.get(position);
+
+            vHolder.vHolder.setBackground(mContext.getDrawable((item.getComplete()==1)?
+                    R.drawable.task_background_close:
+                    R.drawable.task_background_open));
             vHolder.vJobType.setText(item.getJob_type());
             vHolder.vJobId.setText(String.format("%s%s", mContext.getString(R.string.work_item), item.getJob_id()));
             vHolder.vJobItem.setText(item.getTitle());
@@ -95,15 +100,15 @@ public class JobItemAdapter extends RecyclerView.Adapter<JobItemAdapter.ViewHold
         private ViewHolder(View v, int viewType){
             super(v);
             if(viewType==DATA_VIEW) {
-                vJobType = v.findViewById(R.id.job_type);
-                vJobId = v.findViewById(R.id.job_id);
-                vJobItem = v.findViewById(R.id.job_item);
+                vJobType    = v.findViewById(R.id.job_type);
+                vJobId      = v.findViewById(R.id.job_id);
+                vJobItem    = v.findViewById(R.id.job_item);
                 vAssignDate = v.findViewById(R.id.assign_date);
-                vCustomer = v.findViewById(R.id.customer);
-                vHolder = v.findViewById(R.id.holder);
+                vCustomer   = v.findViewById(R.id.customer);
+                vHolder     = v.findViewById(R.id.holder);
             }else{
-                vErrorCode = v.findViewById(R.id.err_code);
-                vErrorDescription = v.findViewById(R.id.err_description);
+                vErrorCode          = v.findViewById(R.id.err_code);
+                vErrorDescription   = v.findViewById(R.id.err_description);
             }
         }
     }

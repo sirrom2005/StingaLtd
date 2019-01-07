@@ -1,15 +1,12 @@
 package com.stingaltd.stingaltd.Classes;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
-import android.os.AsyncTask;
 import android.util.Log;
 
 import com.stingaltd.stingaltd.Common.Common;
 import com.stingaltd.stingaltd.Models.ImageData;
 
 import java.io.IOException;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import okhttp3.FormBody;
@@ -22,9 +19,15 @@ import static com.stingaltd.stingaltd.Common.Common.TIME_OUT;
 
 public class UploadImage {
     private Context c;
+    private OkHttpClient mClient;
 
     public UploadImage(Context c) {
         this.c = c;
+        this.mClient = new OkHttpClient().newBuilder()
+                            .connectTimeout(TIME_OUT, TimeUnit.MILLISECONDS)
+                            .readTimeout(TIME_OUT, TimeUnit.MILLISECONDS)
+                            .writeTimeout(TIME_OUT, TimeUnit.MILLISECONDS)
+                            .build();
     }
 
     public boolean Upload(String FilePath)
@@ -49,20 +52,10 @@ public class UploadImage {
                         .post(requestBody)
                         .build();
 
-                OkHttpClient client = new OkHttpClient().newBuilder()
-                                        .connectTimeout(TIME_OUT, TimeUnit.MILLISECONDS)
-                                        .readTimeout(TIME_OUT, TimeUnit.MILLISECONDS)
-                                        .writeTimeout(TIME_OUT, TimeUnit.MILLISECONDS)
-                                        .build();
-                Response response = client.newCall(request).execute();
-                if (response.body() != null) {
-                    String rs = response.body().string();
-                    Log.e(Common.LOG_TAG, String.format("%s >> %s", "Response", rs));
-                    if (rs.equals("1")) {
-                        obj.setUploaded(1);
-                        Common.SaveObjectAsFile(c, obj, FilePath);
-                        return true;
-                    }
+                if(RequestResponse(request)){
+                    obj.setUploaded(1);
+                    Common.SaveObjectAsFile(c, obj, FilePath);
+                    return true;
                 }
             }
         }catch (IOException | ClassNotFoundException ex) {
@@ -71,11 +64,8 @@ public class UploadImage {
         return false;
     }
 
-
     public boolean DeletePhoto(int id, String dateCreated)
     {
-        final OkHttpClient client = new OkHttpClient();
-
         try
         {
             RequestBody requestBody = new FormBody.Builder()
@@ -83,27 +73,33 @@ public class UploadImage {
                     .add("dateCreated", dateCreated)
                     .build();
 
-            final Request request = new Request.Builder()
+            Request request = new Request.Builder()
                     .url(Common.BASE_URL + "delete_image.php")
                     .post(requestBody)
                     .build();
 
-            try {
-                Response response = client.newCall(request).execute();
-                if (response.body() != null) {
-                    String rs = response.body().string();
-                    Log.e(Common.LOG_TAG, String.format("%s >> %s", "Response", rs));
-                    if (rs.equals("1")) {
-                        Log.e(Common.LOG_TAG, String.format("Delete Photo >> %s id=>[%d] date=>[%s]", "Image deleted", id, dateCreated));
-                        return true;
-                    }
-                }
-            } catch (IOException ex) {
-                Log.e(Common.LOG_TAG, String.format("%s >> %s", "Delete Photo", ex.getMessage()));
+            if(RequestResponse(request)) {
+                Log.e(Common.LOG_TAG, String.format("Delete Photo >> %s id=>[%d] date=>[%s]", "Image deleted", id, dateCreated));
+                return true;
             }
-
         }catch (Exception ex) {
             Log.e(Common.LOG_TAG, String.format("%s >>>> %s", "Delete Photo", ex.getMessage()));
+        }
+        return false;
+    }
+
+    private boolean RequestResponse(Request request){
+        try {
+            Response response = mClient.newCall(request).execute();
+            if (response.body() != null) {
+                String rs = response.body().string();
+                Log.e(Common.LOG_TAG, String.format("%s >> %s", "Response", rs));
+                if (rs.equals("1")) {
+                    return true;
+                }
+            }
+        } catch (IOException ex) {
+            Log.e(Common.LOG_TAG, String.format("%s >>>> %s", "Response exception >> ", ex.getMessage()));
         }
         return false;
     }

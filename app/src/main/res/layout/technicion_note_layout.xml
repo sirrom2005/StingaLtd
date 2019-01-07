@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:background="@android:color/white"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <EditText
+        android:id="@+id/job_comment"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:background="@drawable/border_background"
+        android:gravity="top"
+        android:ems="10"
+        android:hint="@string/technician_note"
+        android:inputType="textMultiLine"
+        android:layout_margin="10dp"
+        android:autofillHints="@string/technician_note" />
+
+    <View style="@style/Divider" android:id="@+id/divider"/>
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:paddingTop="5dp"
+        android:layout_margin="0dp"
+        android:paddingEnd="20dp"
+        android:paddingStart="0dp"
+        android:gravity="end"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <Button
+            android:id="@+id/action"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:text="@string/save"
+            style="@style/DialogBtnStyle" />
+
+        <Button
+            android:id="@+id/cancel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:text="@android:string/cancel"
+            style="@style/DialogBtnStyle" />
+    </LinearLayout>
+</LinearLayout>
+
+

@@ -40,7 +40,7 @@
     <string name="job_list">Your Job Task</string>
     <string name="no_record">No record found!!!</string>
     <string name="save">Save</string>
-    <string name="job_complete">Job Complete</string>
+    <string name="job_complete">Complete</string>
 
     <!-- SyncAdapter related -->
     <string translatable="false" name="sync_account_type">com.stingaltd.stingaltd</string>
@@ -48,4 +48,6 @@
 
     <string name="default_notification_channel_id" translatable="false">fcm_default_channel</string>
     <string name="action_refresh">Upload to Server</string>
+    <string name="missing_job_phot">You are required to add all photos</string>
+    <string name="job_status_updated">Job status updated</string>
 </resources>

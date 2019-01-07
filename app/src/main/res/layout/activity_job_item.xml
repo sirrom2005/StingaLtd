@@ -39,7 +39,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
-                <include android:id="@+id/task" layout="@layout/task_layout"/>
+                <include layout="@layout/task_layout"/>
 
                 <Button
                     android:id="@+id/inventory"
@@ -52,12 +52,12 @@
                     android:layout_height="wrap_content"
                     android:layout_toStartOf="@id/blank"
                     android:background="@drawable/task_left_button_press"
-                    android:layout_below="@id/task"/>
+                    android:layout_below="@id/holder"/>
                 <View
                     android:id="@+id/blank"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_below="@id/task"
+                    android:layout_below="@id/holder"
                     android:layout_centerInParent="true"/>
                 <Button
                     android:id="@+id/expense"
@@ -70,7 +70,7 @@
                     android:layout_height="wrap_content"
                     android:background="@drawable/task_right_button_press"
                     android:layout_toEndOf="@id/blank"
-                    android:layout_below="@id/task"/>
+                    android:layout_below="@id/holder"/>
 
                 <HorizontalScrollView
                     android:id="@+id/pre_view"
@@ -114,17 +114,6 @@
                     android:layout_height="wrap_content"
                     android:background="@android:color/white"
                     android:layout_below="@id/post_view">
-                        <EditText
-                            android:id="@+id/job_comment"
-                            android:layout_width="match_parent"
-                            android:layout_height="100dp"
-                            android:background="@drawable/border_background"
-                            android:gravity="top"
-                            android:ems="10"
-                            android:hint="@string/technician_note"
-                            android:inputType="textMultiLine"
-                            android:layout_margin="10dp"
-                            android:autofillHints="@string/technician_note" />
                     <Button
                         android:id="@+id/submit"
                         android:text="@string/job_complete"
@@ -133,8 +122,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="10dp"
                         style="@style/LoginBtnStyle"
-                        android:layout_centerHorizontal="true"
-                        android:layout_below="@+id/job_comment"/>
+                        android:layout_centerHorizontal="true"/>
                 </RelativeLayout>
             </RelativeLayout>
         </android.support.v4.widget.NestedScrollView>

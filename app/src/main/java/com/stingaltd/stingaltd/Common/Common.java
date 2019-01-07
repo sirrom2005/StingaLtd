@@ -44,6 +44,8 @@ public class Common {
     public static final String POST_DATA = "_post_data_";
     public static final String POST_WORK_ID = "_work_id_";
     public static final String POST_FILENAME = "_work_id_";
+    public static final String DEL_IMG_NAME_PATTERN = "delete.";
+    public static final String JOB_LIST_INDEX = "joblistidx";
     public static final int TIME_OUT = 3000;
 
     public static AlertDialog alert= null;
@@ -140,7 +142,7 @@ public class Common {
         alert.show();
     }
 
-    public static void MessageBox(Context c, String msg) {
+    public static void MessageBox(Context c, String msg){
         confirmation = new WeakReference<>(View.inflate(c, R.layout.message_box_layout, null));
 
         TextView text = confirmation.get().findViewById(R.id.message);

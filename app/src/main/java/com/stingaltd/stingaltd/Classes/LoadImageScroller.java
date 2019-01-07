@@ -8,36 +8,26 @@ import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.util.Base64;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.stingaltd.stingaltd.Common.Common;
 import com.stingaltd.stingaltd.FullScreenImage;
-import com.stingaltd.stingaltd.MainActivity;
+import com.stingaltd.stingaltd.JobItemActivity;
 import com.stingaltd.stingaltd.Models.ImageData;
 import com.stingaltd.stingaltd.R;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.ref.WeakReference;
-import java.util.Locale;
 
 import static com.stingaltd.stingaltd.Common.Common.convertDpToPixel;
 
 public class LoadImageScroller
 {
-    private WeakReference<LinearLayout> weakLayout;
-    private WeakReference<Context> weakContext;
-    private String imgPath;
-    private String WordId;
-    private LinearLayout.LayoutParams layoutParams;
     private Context c;
-    private File dir;
     private int WorkId;
 
     public LoadImageScroller(Context c, int WorkId){
@@ -52,31 +42,27 @@ public class LoadImageScroller
                 (int)convertDpToPixel(160, c));
         layoutParams.setMargins((int)convertDpToPixel(0,  c), 0, (int)convertDpToPixel(7,  c), 0);
 
-        LayoutInflater inflater = (LayoutInflater) c.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-
-        dir = new File(c.getFilesDir(), String.valueOf(WorkId));
-
         mPre_image_list.removeAllViews();
         mPost_image_list.removeAllViews();
-        for(int i=0; i<keys.length; i++)
-        {
-            View placeHolder_pre = inflater.inflate(R.layout.gallery_place_holder, null);
-            View placeHolder_post = inflater.inflate(R.layout.gallery_place_holder, null);
+
+        for(String key : keys) {
+            View placeHolder_pre  = View.inflate(c, R.layout.gallery_place_holder, null);
+            View placeHolder_post = View.inflate(c, R.layout.gallery_place_holder, null);
             placeHolder_pre.setLayoutParams(layoutParams);
             placeHolder_post.setLayoutParams(layoutParams);
 
-            TextView label_pre  = placeHolder_pre.findViewById(R.id.label);
+            TextView label_pre = placeHolder_pre.findViewById(R.id.label);
             TextView label_post = placeHolder_post.findViewById(R.id.label);
 
-            label_pre.setText(keys[i]);
-            label_post.setText(keys[i]);
+            label_pre.setText(key);
+            label_post.setText(key);
 
             mPre_image_list.addView(placeHolder_pre);
             mPost_image_list.addView(placeHolder_post);
         }
     }
 
-    public void LoadImage(final View v, final String img, final boolean ShowProgress)
+    public void LoadImage(final View v, final String img, final boolean ShowProgress, final String PhotoType)
     {
         @SuppressLint("StaticFieldLeak")
         AsyncTask<Void, Void, Bitmap> Task = new AsyncTask<Void, Void, Bitmap>()
@@ -94,6 +80,7 @@ public class LoadImageScroller
 
             @Override
             protected Bitmap doInBackground(Void... voids) {
+                File dir = new File(c.getFilesDir(), String.valueOf(WorkId));
                 String FilePath = "/img/" + img;
                 File path = new File(dir, FilePath);
                 ImageData obj;
@@ -121,6 +108,13 @@ public class LoadImageScroller
 
                     add_icon.setVisibility(View.GONE);
                     photo.setImageBitmap(bitmap);
+                    if(PhotoType.equals(Common.IMG_PRE)){
+                        JobItemActivity.preImage.add(img);
+                    }else{
+                        JobItemActivity.postImage.add(img);
+                    }
+
+                    Log.d(Common.LOG_TAG, JobItemActivity.preImage.size() + "  " + JobItemActivity.postImage.size() );
 
                     add_btn.setOnClickListener(new View.OnClickListener() {
                         @Override

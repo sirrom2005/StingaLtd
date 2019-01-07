@@ -1,6 +1,8 @@
 package com.stingaltd.stingaltd;
 
 import android.Manifest;
+import android.app.AlertDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
@@ -15,33 +17,34 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.stingaltd.stingaltd.Classes.LoadImageScroller;
 import com.stingaltd.stingaltd.Classes.PhotoProcessor;
 import com.stingaltd.stingaltd.Common.Common;
-import com.stingaltd.stingaltd.Models.Job;
 import com.stingaltd.stingaltd.Models.JobItem;
 import com.stingaltd.stingaltd.SyncAdapter.SyncAdapter;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import static com.stingaltd.stingaltd.Common.Common.EXPENSE_AMOUNT_ITEM;
 import static com.stingaltd.stingaltd.Common.Common.IMG_POST;
 import static com.stingaltd.stingaltd.Common.Common.IMG_PRE;
 import static com.stingaltd.stingaltd.Common.Common.INVENTORY_ITEM;
-import static com.stingaltd.stingaltd.Common.Common.JOB_FILE_NAME;
 import static com.stingaltd.stingaltd.Common.Common.JOB_ITEM;
 import static com.stingaltd.stingaltd.Common.Common.LOG_TAG;
 import static com.stingaltd.stingaltd.Common.Common.WORK_ID_INTENT;
@@ -63,6 +66,8 @@ public class JobItemActivity extends AppCompatActivity
     private int mJobPos;
     private String mJobType;
     private String[] mLabels;
+    public static List<String> preImage;
+    public static List<String> postImage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState){
@@ -79,9 +84,9 @@ public class JobItemActivity extends AppCompatActivity
 
         mPre_image_list         = findViewById(R.id.pre_image_list);
         mPost_image_list        = findViewById(R.id.post_image_list);
-        //final EditText JobComment    = findViewById(R.id.job_comment);
-        //Button submit           = findViewById(R.id.submit);
+        Button submit           = findViewById(R.id.submit);
 
+        RelativeLayout vHolder  = findViewById(R.id.holder);
         TextView vJobType       = findViewById(R.id.job_type);
         TextView vJobId         = findViewById(R.id.job_id);
         TextView vJobItem       = findViewById(R.id.job_item);
@@ -94,14 +99,16 @@ public class JobItemActivity extends AppCompatActivity
         final JobItem WorkItem = (JobItem) getIntent().getSerializableExtra(JOB_ITEM);
         mWorkId  = WorkItem.getId();
         mJobType = WorkItem.getJob_type();
-
-        mLabels = Common.getAccount(getApplicationContext()).getGalleryLable().get(mJobType);
+        mLabels  = Common.getAccount(getApplicationContext()).getGalleryLable().get(mJobType);
 
         vJobType.setText(WorkItem.getJob_type());
         vJobId.setText(String.format("%s%s", getString(R.string.work_item), WorkItem.getJob_id()));
         vJobItem.setText(WorkItem.getTitle());
         vAssignDate.setText(WorkItem.getStartDate());
         vCustomer.setText(Html.fromHtml(WorkItem.getCustomer()));
+        vHolder.setBackground(getDrawable(  (WorkItem.getComplete()==1)?
+                                            R.drawable.task_background_close:
+                                            R.drawable.task_background_open));
 
         vInventory.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -123,17 +130,65 @@ public class JobItemActivity extends AppCompatActivity
             }
         });
 
-        /*submit.setOnClickListener(new View.OnClickListener() {
+        submit.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
-                try {
-                    //save job comment and close jobs
-                    Common.SaveObjectAsFile(getApplicationContext(), new Job(mWorkId, JobComment.getText().toString()), JOB_FILE_NAME);
-                } catch (IOException ex) {
-                    Log.d(Common.LOG_TAG,  ex.getMessage());
+            public void onClick(View v)
+            {
+                if(preImage.size()==mLabels.length && postImage.size()==mLabels.length)
+                {
+                    View _view = View.inflate(getBaseContext(), R.layout.technicion_note_layout, null);
+
+                    final TextView comment = _view.findViewById(R.id.job_comment);
+                    Button action = _view.findViewById(R.id.action);
+                    Button cancel = _view.findViewById(R.id.cancel);
+
+                    AlertDialog.Builder dialog = new AlertDialog.Builder(JobItemActivity.this);
+                    final AlertDialog alert = dialog.create();
+                    alert.setView(_view);
+                    alert.setCancelable(false);
+                    alert.show();
+
+                    action.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            try {
+                                WorkItem.setTechnicianNote(comment.getText().toString());
+                                WorkItem.setCompleteDate();
+                                Common.SaveObjectAsFile(getApplicationContext(), WorkItem, String.format(Locale.US,"%d/%s/", mWorkId, Common.JOB_FILE_NAME));
+
+                                Common.MessageBox(JobItemActivity.this, getString(R.string.job_status_updated));
+                                Button action = Common.confirmation.get().findViewById(R.id.action);
+                                action.setOnClickListener(new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View v) {
+                                        Common.alert.dismiss();
+                                    }
+                                });
+                            } catch (IOException ex) {
+                                Log.d(Common.LOG_TAG,  ex.getMessage());
+                            }
+                            alert.dismiss();
+                        }
+                    });
+
+                    cancel.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            alert.dismiss();
+                        }
+                    });
+                }else{
+                    Common.MessageBox(JobItemActivity.this, getString(R.string.missing_job_phot));
+                    Button action = Common.confirmation.get().findViewById(R.id.action);
+                    action.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            Common.alert.dismiss();
+                        }
+                    });
                 }
             }
-        });*/
+        });
     }
 
     @Override
@@ -159,7 +214,7 @@ public class JobItemActivity extends AppCompatActivity
         super.onStart();
         mLoadImageScroller = new LoadImageScroller(getApplicationContext(), mWorkId);
         mLoadImageScroller.PrepareGalleryLabel(mPre_image_list, mPost_image_list, mLabels);
-        LoadGalleryLabels();
+        LoadGalleryImages();
     }
 
     @Override
@@ -167,10 +222,13 @@ public class JobItemActivity extends AppCompatActivity
         super.onResume();
     }
 
-    private void LoadGalleryLabels()
+    private void LoadGalleryImages()
     {
         ImageView preBtn, postBtn;
-        for(int i =0; i<mPre_image_list.getChildCount(); i++){
+        preImage = new ArrayList<>();
+        postImage = new ArrayList<>();
+
+        for(int i=0; i<mPre_image_list.getChildCount(); i++){
             preBtn  = mPre_image_list.getChildAt(i).findViewById(R.id.add_btn);
             postBtn = mPost_image_list.getChildAt(i).findViewById(R.id.add_btn);
 
@@ -193,8 +251,8 @@ public class JobItemActivity extends AppCompatActivity
                 }
             });
 
-            mLoadImageScroller.LoadImage(mPre_image_list.getChildAt(i) , String.format("%s%s.json", i,Common.IMG_PRE) ,false);
-            mLoadImageScroller.LoadImage(mPost_image_list.getChildAt(i), String.format("%s%s.json", i,Common.IMG_POST),false);
+            mLoadImageScroller.LoadImage(mPre_image_list.getChildAt(i) , String.format("%s%s.json", i,Common.IMG_PRE) ,false, Common.IMG_PRE);
+            mLoadImageScroller.LoadImage(mPost_image_list.getChildAt(i), String.format("%s%s.json", i,Common.IMG_POST),false, Common.IMG_POST);
         }
     }
 
@@ -283,12 +341,11 @@ public class JobItemActivity extends AppCompatActivity
             //Save image as json data
             photoProcessor.SavePhotoJsonData(getBaseContext(), mCurrentPhotoPath, mWorkId, mPhotoType, mJobPos, mJobType);
             //Load Image in view at selected position
-            mLoadImageScroller.LoadImage(
+            /*mLoadImageScroller.LoadImage(
                     mPhotoType.equals(Common.IMG_PRE) ? mPre_image_list.getChildAt(mJobPos) : mPost_image_list.getChildAt(mJobPos),
-                    String.format("%s%s.json",
-                    mJobPos,
-                    mPhotoType
-                    ), true);
+                    String.format("%s%s.json",mJobPos,mPhotoType),
+                    true,
+                    mPhotoType);*/
         }
     }
 

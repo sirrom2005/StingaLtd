@@ -4,6 +4,7 @@ import android.content.Context;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.stingaltd.stingaltd.Classes.DeletePhoto;
 import com.stingaltd.stingaltd.Classes.UploadImage;
 import com.stingaltd.stingaltd.Common.Common;
 import com.stingaltd.stingaltd.Models.ImageData;
@@ -13,6 +14,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class SyncData {
     public static void UploadPhoto(Context c, int WorkId)
@@ -73,6 +78,20 @@ public class SyncData {
                     }
                 }
             }
+
+            /*ImageData img = new ImageData(WorkId, DateCreated, null, null,null,0,null, null);
+
+            new DeletePhoto().Post(img, new Callback<String>() {
+                @Override
+                public void onResponse(Call<String> call, Response<String> response) {
+                    Log.d(Common.LOG_TAG, "HERER =>> " + response.body());
+                }
+
+                @Override
+                public void onFailure(Call<String> call, Throwable t) {
+
+                }
+            });*/
         }
     }
 }

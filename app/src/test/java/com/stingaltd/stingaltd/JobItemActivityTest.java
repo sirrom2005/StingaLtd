@@ -11,10 +11,10 @@ public class JobItemActivityTest {
 
     @Test
     public void createImageFileTest() {
-        JobItemActivity a = new JobItemActivity();
+        //JobItemActivity a = new JobItemActivity();
 
-        File f = a.createImageFile();
+        //File f = a.createImageFile();
 
-        System.out.println(f.toString());
+        //System.out.println(f.toString());
     }
 }

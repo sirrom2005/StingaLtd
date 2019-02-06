@@ -13,23 +13,19 @@ import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Base64;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.stingaltd.stingaltd.Classes.UploadImage;
 import com.stingaltd.stingaltd.Common.Common;
+import com.stingaltd.stingaltd.JobScheduler.Util;
 import com.stingaltd.stingaltd.Models.ImageData;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Locale;
 
 
 public class FullScreenImage extends AppCompatActivity {
@@ -116,22 +112,15 @@ public class FullScreenImage extends AppCompatActivity {
     }
 
     private void deleteImage(String file) {
-        File dir = new File(getFilesDir(), String.valueOf(WorkId)+"/img");
-        File _file = new File(dir, file);
-        if(_file.exists()){
-            if(_file.renameTo(new File(dir,String.format("%s%s", Common.DEL_IMG_NAME_PATTERN, System.currentTimeMillis())))){
-                mImageList.remove(file);
-            }
-        }
+        mImageList.remove(file);
+        Util.PhotoDeleteScheduleJob(this,WorkId, file);
     }
 
     private void getImageData(int WorkId) {
         mImageList.clear();
         File dir = new File(getFilesDir(), String.valueOf(WorkId)+"/img");
         for(File file : dir.listFiles()) {
-            if(!file.getName().contains(Common.DEL_IMG_NAME_PATTERN)){
-                mImageList.add(file.getName());
-            }
+            mImageList.add(file.getName());
         }
     }
 
@@ -157,15 +146,12 @@ public class FullScreenImage extends AppCompatActivity {
             ImageView imageView = itemView.findViewById(R.id.imageView);
             TextView label = itemView.findViewById(R.id.label);
 
-            try {
-                ImageData obj = (ImageData) Common.readObjectFromFile(c, WorkId + "/img/" + mImageList.get(position));
+            ImageData obj = (ImageData) Common.readObjectFromFile(c, WorkId + "/img/" + mImageList.get(position));
+            if(obj!=null) {
                 byte[] decodedString = Base64.decode(obj.getLargeImage(), Base64.NO_WRAP);
                 Bitmap img = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
                 imageView.setImageBitmap(img);
                 label.setText(obj.getLabel());
-
-            } catch (IOException | ClassNotFoundException ex) {
-                Log.e(Common.LOG_TAG, ex.getMessage());
             }
 
             container.addView(itemView);

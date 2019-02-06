@@ -36,7 +36,6 @@ import com.google.gson.GsonBuilder;
 import com.stingaltd.stingaltd.Common.Common;
 import com.stingaltd.stingaltd.Interface.IAccount;
 import com.stingaltd.stingaltd.Models.Account;
-import com.stingaltd.stingaltd.SyncAdapter.SyncAdapter;
 
 import java.io.File;
 import java.io.IOException;
@@ -103,45 +102,6 @@ public class LoginActivity extends AppCompatActivity implements Callback<Account
         mLoginFormView = findViewById(R.id.login_form);
         mProgressView = findViewById(R.id.login_progress);
         RelativeLayout window = findViewById(R.id.window);
-
-        SyncAdapter.initializeSyncAdapter(this);
-
-        /*mEmailView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-            @Override
-            public void onFocusChange(View v, boolean hasFocus) {
-                RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
-                params.addRule((hasFocus)? RelativeLayout.ALIGN_PARENT_TOP : RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
-                params.setMargins(0, (int) Common.convertDpToPixel(100,getApplicationContext()),0,0);
-                mLoginFormView.setLayoutParams(params);
-            }
-        });
-
-        mPasswordView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-            @Override
-            public void onFocusChange(View v, boolean hasFocus) {
-                RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
-                params.addRule((hasFocus)? RelativeLayout.ALIGN_PARENT_TOP : RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
-                params.setMargins(0,(int) Common.convertDpToPixel(100,getApplicationContext()),0,0);
-                mLoginFormView.setLayoutParams(params);
-            }
-        });
-
-        window.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                mEmailView.clearFocus();
-                mPasswordView.clearFocus();
-                InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
-                //Find the currently focused view, so we can grab the correct window token from it.
-                View view = getCurrentFocus();
-                //If no view currently has focus, create a new one, just so we can grab a window token from it
-                if (view == null) {
-                    view = new View(getApplicationContext());
-                }
-                imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
-                return false;
-            }
-        });*/
     }
 
     private void animiLogin(boolean hasFocus){

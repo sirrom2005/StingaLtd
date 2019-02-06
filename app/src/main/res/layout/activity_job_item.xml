@@ -50,15 +50,18 @@
                     android:paddingStart="0dp"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_toStartOf="@id/blank"
+                    android:layout_toStartOf="@id/rod_reading"
                     android:background="@drawable/task_left_button_press"
                     android:layout_below="@id/holder"/>
-                <View
-                    android:id="@+id/blank"
-                    android:layout_width="0dp"
+                <Button
+                    android:id="@+id/rod_reading"
+                    android:text="@string/rod_reading"
+                    android:textColor="@android:color/white"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_below="@id/holder"
-                    android:layout_centerInParent="true"/>
+                    android:background="@drawable/task_center_button_press"
+                    android:layout_centerInParent="true"
+                    android:layout_below="@id/holder"/>
                 <Button
                     android:id="@+id/expense"
                     android:text="@string/expense"
@@ -69,7 +72,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:background="@drawable/task_right_button_press"
-                    android:layout_toEndOf="@id/blank"
+                    android:layout_toEndOf="@id/rod_reading"
                     android:layout_below="@id/holder"/>
 
                 <HorizontalScrollView

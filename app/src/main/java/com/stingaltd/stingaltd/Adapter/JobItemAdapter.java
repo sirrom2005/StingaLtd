@@ -18,8 +18,6 @@ import com.stingaltd.stingaltd.R;
 import java.util.List;
 
 import static com.stingaltd.stingaltd.Common.Common.JOB_ITEM;
-import static com.stingaltd.stingaltd.Common.Common.JOB_LIST_INDEX;
-
 
 public class JobItemAdapter extends RecyclerView.Adapter<JobItemAdapter.ViewHolder> {
     private static final int DATA_VIEW  = 1;
@@ -39,14 +37,10 @@ public class JobItemAdapter extends RecyclerView.Adapter<JobItemAdapter.ViewHold
 
     @NonNull
     @Override
-    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view;
-        ViewHolder viewHolder;
-
-        view = inflater.inflate((viewType==DATA_VIEW) ? R.layout.task_layout : R.layout.no_record_layout, parent, false);
-        viewHolder = new ViewHolder(view, viewType);
-
-        return viewHolder;
+    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType)
+    {
+        View view = inflater.inflate((viewType==DATA_VIEW) ? R.layout.task_layout : R.layout.no_record_layout, parent, false);
+        return new ViewHolder(view, viewType);
     }
 
     @Override
@@ -60,14 +54,14 @@ public class JobItemAdapter extends RecyclerView.Adapter<JobItemAdapter.ViewHold
             vHolder.vJobType.setText(item.getJob_type());
             vHolder.vJobId.setText(String.format("%s%s", mContext.getString(R.string.work_item), item.getJob_id()));
             vHolder.vJobItem.setText(item.getTitle());
-            vHolder.vAssignDate.setText(item.getStartDate());
+            vHolder.vAssignDate.setText(String.format("%s: %s", "Start Date", item.getStartDate()));
             vHolder.vCustomer.setText(Html.fromHtml(item.getCustomer()));
 
             vHolder.vHolder.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     Intent intent = new Intent(mContext, JobItemActivity.class);
-                    intent.putExtra(JOB_ITEM, item);
+                    intent.putExtra(JOB_ITEM, item.getId());
                     mContext.startActivity(intent);
                 }
             });
@@ -79,12 +73,12 @@ public class JobItemAdapter extends RecyclerView.Adapter<JobItemAdapter.ViewHold
 
     @Override
     public int getItemViewType(int position) {
-        return data==null? EMPTY_VIEW : DATA_VIEW;
+        return data.size()==0 ? EMPTY_VIEW : DATA_VIEW;
     }
 
     @Override
     public int getItemCount() {
-        return data==null? 1 : data.size();
+        return data.size()==0? 1 : data.size();
     }
 
     class ViewHolder extends RecyclerView.ViewHolder {

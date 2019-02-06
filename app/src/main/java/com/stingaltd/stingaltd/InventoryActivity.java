@@ -9,6 +9,10 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.Editable;
+import android.text.InputFilter;
+import android.text.Spanned;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,8 +20,12 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.stingaltd.stingaltd.JobScheduler.Util;
 import com.stingaltd.stingaltd.Models.Inventory;
 import com.stingaltd.stingaltd.Common.Common;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.List;
 
@@ -102,6 +110,7 @@ public class InventoryActivity extends AppCompatActivity
                 vInventoryId.setText(String.valueOf(item.getInventoryId()));
                 vAmountIssued.setText(String.valueOf(item.getQuantity()));
                 vAmountUsed.setText(String.valueOf(item.getQuantityUsed()));
+                vAmountUsed.setFilters(new InputFilter[]{ new InputFilterMinMax(0, item.getQuantity())});
 
                 contentArea.addView(layout);
             }
@@ -109,11 +118,48 @@ public class InventoryActivity extends AppCompatActivity
             fab.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    com.stingaltd.stingaltd.Classes.Inventory.UpdateInventory(mActivity, contentArea, WorkId);
+                    try{
+                        final JSONObject jsonObject = new JSONObject();
+                        for (int i = 0; i < contentArea.getChildCount(); i++) {
+                            TextView key = contentArea.getChildAt(i).findViewById(R.id.inventory_id);
+                            TextView val = contentArea.getChildAt(i).findViewById(R.id.amount_used);
+                            jsonObject.put(key.getText().toString(), val.getText().toString());
+                        }
+                        Util.AddJsonDataScheduleJob(getContext(), jsonObject.toString(), WorkId, "update_inventory");
+                    }
+                    catch(JSONException ex){
+                        Log.e(Common.LOG_TAG, "JsonEx " + ex.getMessage());
+                    }
                 }
             });
 
             return viewRoot;
+        }
+
+
+        private static class InputFilterMinMax implements InputFilter {
+            private int min;
+            private int max;
+
+            public InputFilterMinMax(int min, int max) {
+                this.min = min;
+                this.max = max;
+            }
+
+            @Override
+            public CharSequence filter(CharSequence source, int start, int end, Spanned dest, int dstart, int dend) {
+                //noinspection EmptyCatchBlock
+                try {
+                    int input = Integer.parseInt(dest.subSequence(0, dstart).toString() + source + dest.subSequence(dend, dest.length()));
+                    if (isInRange(min, max, input))
+                        return null;
+                } catch (NumberFormatException nfe) { }
+                return "";
+            }
+
+            private boolean isInRange(int a, int b, int c) {
+                return b > a ? c >= a && c <= b : c >= b && c <= a;
+            }
         }
     }
 }

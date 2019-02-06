@@ -22,6 +22,7 @@ public class JobItem implements Serializable {
     private int technician_id;
     private List<Inventory> inventory = new ArrayList<>();
     private List<ExpenseAmount> expense = new ArrayList<>();
+    private List<RodReading> rod_reading = new ArrayList<>();
 
     public int getId() {
         return id;
@@ -65,6 +66,7 @@ public class JobItem implements Serializable {
 
     public List<Inventory> getInventory() { return inventory; }
     public List<ExpenseAmount> getExpenseAmount() { return expense; }
+    public List<RodReading> getRodReading() { return rod_reading; }
 
     public void setTechnicianNote(String technician_note) {
         this.technician_note = technician_note;

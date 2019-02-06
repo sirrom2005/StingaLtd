@@ -87,12 +87,10 @@ public class LoadImageScroller
                 Bitmap decodedByte = null;
                 if(path.exists())
                 {
-                    try {
-                        obj = (ImageData) Common.readObjectFromFile(c, WorkId+FilePath);
+                    obj = (ImageData) Common.readObjectFromFile(c, WorkId+FilePath);
+                    if(obj!=null) {
                         byte[] decodedString = Base64.decode(obj.getThumb(), Base64.NO_WRAP);
                         decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
-                    } catch (IOException | ClassNotFoundException ex) {
-                        Log.e(Common.LOG_TAG, ex.getMessage());
                     }
                 }
                 return decodedByte;
@@ -120,6 +118,7 @@ public class LoadImageScroller
                         @Override
                         public void onClick(View v) {
                             Intent intent = new Intent(c, FullScreenImage.class);
+                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                             intent.putExtra(Common.SELECTED_IMG_FILE,img);
                             intent.putExtra(Common.WORK_ID_INTENT,WorkId);
                             c.startActivity(intent);

@@ -1,24 +1,21 @@
 package com.stingaltd.stingaltd.Classes;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
-import android.media.ExifInterface;
+import androidx.exifinterface.media.ExifInterface;
 import android.os.AsyncTask;
-import android.os.Environment;
 import android.util.Base64;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.stingaltd.stingaltd.Common.Common;
 import com.stingaltd.stingaltd.Models.ImageData;
-import com.stingaltd.stingaltd.R;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -26,92 +23,67 @@ import java.util.Objects;
 
 import static android.util.Base64.encodeToString;
 import static com.stingaltd.stingaltd.Common.Common.LOG_TAG;
-import static com.stingaltd.stingaltd.Common.Common.TEMP_PHOTO_PATH;
 
-public class PhotoProcessor {
-    public File createTmpImageFile() {
-        File storageDir = new File(Environment.getExternalStorageDirectory(),TEMP_PHOTO_PATH);
+public class PhotoProcessor extends AsyncTask<Void, Void, Boolean>
+{
+    private WeakReference<Context> WeakContext;
+    private int WorkId;
+    private int JobPos;
+    private String ImagePath;
+    private String PhotoType;
+    private String JobType;
 
-        if(!storageDir.exists()){
-            if(storageDir.mkdir()){
-                Log.d(Common.LOG_TAG, String.format("Dir created %s", storageDir));
-            }
-        }
-
-        File image;
-        try {
-            image = File.createTempFile(
-                    "TMP_PHOTO",/* prefix */
-                    ".jpg",       /* suffix */
-                    storageDir           /* directory */
-            );
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }
-
-        return image;
+    public PhotoProcessor(Context c, String imagePath, int workId, String photoType, int jobPos, String jobType) {
+        this.WeakContext= new WeakReference<>(c);
+        this.ImagePath  = imagePath;
+        this.WorkId     = workId;
+        this.PhotoType  = photoType;
+        this.JobPos     = jobPos;
+        this.JobType    = jobType;
     }
 
-    public void SavePhotoJsonData(final Context c, final String ImagePath, final int WorkId, final String PhotoType, final int JobPos, final String JobType)
-    {
-        @SuppressLint("StaticFieldLeak")
-        AsyncTask<Void, Void, Boolean> task = new AsyncTask<Void, Void, Boolean>() {
-            @Override
-            protected Boolean doInBackground(Void... voids)
-            {
-                try {
-                    float angle         = GetImageRotation(ImagePath);
-                    Bitmap bitmap       = BitmapFactory.decodeFile(ImagePath);
-                    String LargeImage   = GetImage(bitmap, angle, 2000);
-                    String Thumb        = GetImage(bitmap, angle, 200);
-                    String FilePath     = String.format("/%s/img/%s%s.json",WorkId, JobPos, PhotoType);
+    @Override
+    protected Boolean doInBackground(Void... voids) {
+        Context c = WeakContext.get();
+        try {
+            float angle         = GetImageRotation(ImagePath);
+            Bitmap bitmap       = BitmapFactory.decodeFile(ImagePath);
+            String LargeImage   = GetImage(bitmap, angle, 2000);
+            String Thumb        = GetImage(bitmap, angle, 200);
+            String FilePath     = String.format("/%s/img/%s%s.json",WorkId, JobPos, PhotoType);
 
-                    File dir = new File(c.getFilesDir(),String.valueOf(WorkId));
-                    if(!dir.exists()){
-                        if(dir.mkdir()){
-                            Log.d(Common.LOG_TAG, String.format("%s >> Directory created %s", "PhotoProcessor", dir));
-                        }
-                    }
-
-                    File imgDir = new File(dir,"img");
-                    if(!imgDir.exists()){
-                        if(imgDir.mkdir()){
-                            Log.d(Common.LOG_TAG, String.format("%s >> Directory created %s", "PhotoProcessor", imgDir));
-                        }
-                    }
-
-                    //get list of job type from account just type list
-                    String PhotoLabel = Objects.requireNonNull(Common.getAccount(c).getGalleryLable().get(JobType))[JobPos];
-
-                    String DateCreated = new SimpleDateFormat("yyyyMMddHHmmss", Locale.US).format(new Date());
-                    Log.d(Common.LOG_TAG, String.format("%s >> Location %s", "PhotoProcessor", Common.getLocation(c)));
-                    ImageData imageData = new ImageData(WorkId, DateCreated, PhotoType, Common.getLocation(c), PhotoLabel,0,Thumb,LargeImage);
-                    Common.SaveObjectAsFile(c, imageData, FilePath);
-                    File f = new File(ImagePath);
-                    if(f.delete()){
-                        //Delete photo image
-                        Log.d(Common.LOG_TAG, String.format("%s >> File deleted %s", "PhotoProcessor", f.toString()));
-                    }
-                }catch (IOException | NullPointerException ex)
-                {
-                    Log.e(Common.LOG_TAG, ex.getMessage());
-                    return false;
-                }
-                return true;
-            }
-
-            @Override
-            protected void onPostExecute(Boolean aBool) {
-                super.onPostExecute(aBool);
-                if(!aBool)
-                {
-                    Toast.makeText(c,R.string.photo_error_local_folder,Toast.LENGTH_SHORT).show();
+            File dir = new File(c.getFilesDir(),String.valueOf(WorkId));
+            if(!dir.exists()){
+                if(dir.mkdir()){
+                    Log.d(Common.LOG_TAG, String.format("%s >> Directory created %s", "PhotoProcessor", dir));
                 }
             }
-        };
 
-        task.execute();
+            File imgDir = new File(dir,"img");
+            if(!imgDir.exists()){
+                if(imgDir.mkdir()){
+                    Log.d(Common.LOG_TAG, String.format("%s >> Directory created %s", "PhotoProcessor", imgDir));
+                }
+            }
+
+            //get list of job type from account just type list
+            String PhotoLabel = Objects.requireNonNull(Common.getAccount(c).getGalleryLable().get(JobType))[JobPos];
+
+            String DateCreated = new SimpleDateFormat("yyyyMMddHHmmss", Locale.US).format(new Date());
+
+            ImageData imageData = new ImageData(WorkId, DateCreated, PhotoType, Common.getLocation(c), PhotoLabel,0,Thumb,LargeImage);
+            Common.SaveObjectAsFile(c, imageData, FilePath);
+            File f = new File(ImagePath);
+            if(f.delete()){
+                //Delete photo image
+                Log.d(Common.LOG_TAG, String.format("%s >> File deleted %s", "PhotoProcessor", f.toString()));
+            }
+        }catch (IOException | NullPointerException ex)
+        {
+            Log.e(Common.LOG_TAG, ex.getMessage());
+            return false;
+        }
+        return true;
     }
 
     private float GetImageRotation(String imagePath)
@@ -153,4 +125,5 @@ public class PhotoProcessor {
         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArray);
         return encodeToString(byteArray.toByteArray(), Base64.NO_WRAP);
     }
+
 }

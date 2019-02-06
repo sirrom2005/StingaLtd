@@ -18,8 +18,12 @@ import android.widget.TextView;
 
 import com.stingaltd.stingaltd.Classes.Expense;
 import com.stingaltd.stingaltd.Common.Common;
+import com.stingaltd.stingaltd.JobScheduler.Util;
 import com.stingaltd.stingaltd.Models.ExpenseAmount;
 import com.stingaltd.stingaltd.Models.Expenses;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.HashMap;
 import java.util.List;
@@ -117,7 +121,19 @@ public class ExpenseActivity extends AppCompatActivity
             fab.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Expense.UpdateExpense(mActivity, contentArea, WorkId);
+                    try{
+                        final JSONObject jsonObject = new JSONObject();
+                        for (int i = 0; i < contentArea.getChildCount(); i++) {
+                            TextView key = contentArea.getChildAt(i).findViewById(R.id.expense_id);
+                            TextView val = contentArea.getChildAt(i).findViewById(R.id.amount);
+                            jsonObject.put(key.getText().toString(), val.getText().toString());
+                        }
+
+                        Util.AddJsonDataScheduleJob(getContext(), jsonObject.toString(), WorkId, "update_expense");
+                    }
+                    catch(JSONException ex){
+                        Log.e(Common.LOG_TAG, "JsonEx " + ex.getMessage());
+                    }
                 }
             });
 

@@ -9,9 +9,8 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
-    <uses-permission android:name="android.permission.READ_SYNC_SETTINGS"/>
-    <uses-permission android:name="android.permission.WRITE_SYNC_SETTINGS"/>
-    <uses-permission android:name="android.permission.AUTHENTICATE_ACCOUNTS"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <uses-feature android:name="android.hardware.camera2" android:required="true" />
 
@@ -49,6 +48,11 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".JobItemActivity" />
         </activity>
+        <activity android:screenOrientation="portrait" android:theme="@style/AppTheme" android:name=".RodReadActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".RodReadActivity" />
+        </activity>
         <activity android:screenOrientation="portrait" android:theme="@style/AppTheme" android:name=".ExpenseActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
@@ -66,31 +70,22 @@
                 android:resource="@xml/file_paths"></meta-data>
         </provider>
 
-        <provider
-            android:authorities="@string/content_authority"
-            android:name=".Data.StubProvider"
-            android:exported="false"
-            android:syncable="true"/>
         <service
-            android:name=".SyncAdapter.AuthenticatorService">
-            <intent-filter>
-                <action android:name="android.accounts.AccountAuthenticator"/>
-            </intent-filter>
-            <meta-data
-                android:name="android.accounts.AccountAuthenticator"
-                android:resource="@xml/authenticator" />
-        </service>
+            android:name=".JobScheduler.PhotoUploadJobService"
+            android:permission="android.permission.BIND_JOB_SERVICE"
+            android:exported="true"/>
         <service
-            android:name=".SyncAdapter.SyncService"
-            android:exported="true"
-            android:process=":sync">
-            <intent-filter>
-                <action android:name="android.content.SyncAdapter"/>
-            </intent-filter>
-            <meta-data android:name="android.content.SyncAdapter"
-                android:resource="@xml/syncadapter" />
-        </service>
-        <!--receiver android:name=".Services.PhotoReceiver"></receiver-->
+            android:name=".JobScheduler.PhotoDeleteJobService"
+            android:permission="android.permission.BIND_JOB_SERVICE"
+            android:exported="true"/>
+        <service
+            android:name=".JobScheduler.JobStatusJobService"
+            android:permission="android.permission.BIND_JOB_SERVICE"
+            android:exported="true"/>
+        <service
+            android:name=".JobScheduler.AddJsonDataJobService"
+            android:permission="android.permission.BIND_JOB_SERVICE"
+            android:exported="true"/>
 
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"

@@ -24,15 +24,10 @@ import static com.stingaltd.stingaltd.Common.Common.BASE_URL;
 import static com.stingaltd.stingaltd.Common.Common.LOG_TAG;
 
 
-public class _JobItem implements Callback<List<JobItem>>
+public class GetJobList implements Callback<List<JobItem>>
 {
-    private Context c;
-    private JobItemAdapter jobItemAdapter;
-
-    public void start(Context c, int technician_id, JobItemAdapter jobItemAdapter)
+    public void start(int technician_id)
     {
-        this.c = c;
-        this.jobItemAdapter = jobItemAdapter;
         Gson gson = new GsonBuilder()
                 .setLenient()
                 .create();
@@ -49,18 +44,7 @@ public class _JobItem implements Callback<List<JobItem>>
     }
 
     @Override
-    public void onResponse(Call<List<JobItem>> call, Response<List<JobItem>> response) {
-        try {
-            Common.SaveObjectAsFile(c, response.body(), Common.getUserJobsFileName(c));
-        } catch (IOException ex) {
-            Log.e(LOG_TAG, ex.getMessage());
-        }
-        jobItemAdapter.loadData(response.body());
-        jobItemAdapter.notifyDataSetChanged();
-    }
-
+    public void onResponse(Call<List<JobItem>> call, Response<List<JobItem>> response) { }
     @Override
-    public void onFailure(Call<List<JobItem>> call, Throwable t) {
-        Log.e(LOG_TAG, t.getMessage());
-    }
+    public void onFailure(Call<List<JobItem>> call, Throwable t) {}
 }

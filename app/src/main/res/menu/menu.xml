@@ -5,9 +5,9 @@
     tools:context=".MainActivity">
 
     <item
-        android:id="@+id/action_refresh"
+        android:id="@+id/action_update"
         android:orderInCategory="10"
         android:icon="@drawable/baseline_cached_white_48"
-        android:title="@string/action_refresh"
+        android:title="@string/action_update"
         app:showAsAction="never" />
 </menu>

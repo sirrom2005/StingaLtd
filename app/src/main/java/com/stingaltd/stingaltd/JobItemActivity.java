@@ -1,6 +1,7 @@
 package com.stingaltd.stingaltd;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -8,6 +9,7 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
@@ -17,7 +19,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -30,9 +31,10 @@ import android.widget.Toast;
 
 import com.stingaltd.stingaltd.Classes.LoadImageScroller;
 import com.stingaltd.stingaltd.Classes.PhotoProcessor;
+import com.stingaltd.stingaltd.Classes.UpdateApp;
 import com.stingaltd.stingaltd.Common.Common;
+import com.stingaltd.stingaltd.JobScheduler.Util;
 import com.stingaltd.stingaltd.Models.JobItem;
-import com.stingaltd.stingaltd.SyncAdapter.SyncAdapter;
 
 import java.io.File;
 import java.io.IOException;
@@ -47,6 +49,8 @@ import static com.stingaltd.stingaltd.Common.Common.IMG_PRE;
 import static com.stingaltd.stingaltd.Common.Common.INVENTORY_ITEM;
 import static com.stingaltd.stingaltd.Common.Common.JOB_ITEM;
 import static com.stingaltd.stingaltd.Common.Common.LOG_TAG;
+import static com.stingaltd.stingaltd.Common.Common.RODREADING_ITEM;
+import static com.stingaltd.stingaltd.Common.Common.TEMP_PHOTO_PATH;
 import static com.stingaltd.stingaltd.Common.Common.WORK_ID_INTENT;
 
 public class JobItemActivity extends AppCompatActivity
@@ -58,7 +62,6 @@ public class JobItemActivity extends AppCompatActivity
 
     private LinearLayout    mPre_image_list,
                             mPost_image_list;
-    private PhotoProcessor photoProcessor = new PhotoProcessor();
     private LoadImageScroller mLoadImageScroller;
     private String mCurrentPhotoPath;
     private String mPhotoType;
@@ -94,9 +97,11 @@ public class JobItemActivity extends AppCompatActivity
         TextView vCustomer      = findViewById(R.id.customer);
         Button vInventory       = findViewById(R.id.inventory);
         Button vExpense         = findViewById(R.id.expense);
+        Button vRodReading      = findViewById(R.id.rod_reading);
 
 
-        final JobItem WorkItem = (JobItem) getIntent().getSerializableExtra(JOB_ITEM);
+        int id = getIntent().getIntExtra(JOB_ITEM, 0);
+        final JobItem WorkItem = Common.FilterJobById(getBaseContext(), id);
         mWorkId  = WorkItem.getId();
         mJobType = WorkItem.getJob_type();
         mLabels  = Common.getAccount(getApplicationContext()).getGalleryLable().get(mJobType);
@@ -120,6 +125,16 @@ public class JobItemActivity extends AppCompatActivity
             }
         });
 
+        vRodReading.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(JobItemActivity.this, RodReadActivity.class);
+                intent.putExtra(WORK_ID_INTENT, mWorkId);
+                intent.putExtra(RODREADING_ITEM, (Serializable) WorkItem.getRodReading());
+                startActivity(intent);
+            }
+        });
+
         vExpense.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -134,9 +149,10 @@ public class JobItemActivity extends AppCompatActivity
             @Override
             public void onClick(View v)
             {
+                Context c = getBaseContext();
                 if(preImage.size()==mLabels.length && postImage.size()==mLabels.length)
                 {
-                    View _view = View.inflate(getBaseContext(), R.layout.technicion_note_layout, null);
+                    View _view = View.inflate(c, R.layout.technicion_note_layout, null);
 
                     final TextView comment = _view.findViewById(R.id.job_comment);
                     Button action = _view.findViewById(R.id.action);
@@ -151,22 +167,16 @@ public class JobItemActivity extends AppCompatActivity
                     action.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            try {
-                                WorkItem.setTechnicianNote(comment.getText().toString());
-                                WorkItem.setCompleteDate();
-                                Common.SaveObjectAsFile(getApplicationContext(), WorkItem, String.format(Locale.US,"%d/%s/", mWorkId, Common.JOB_FILE_NAME));
+                            Common.MessageBox(JobItemActivity.this, getString(R.string.job_status_updated));
+                            Button action = Common.confirmation.get().findViewById(R.id.action);
+                            action.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    Util.UpdateStatusScheduleJob(getBaseContext(), mWorkId, comment.getText().toString());
+                                    Common.alert.dismiss();
+                                }
+                            });
 
-                                Common.MessageBox(JobItemActivity.this, getString(R.string.job_status_updated));
-                                Button action = Common.confirmation.get().findViewById(R.id.action);
-                                action.setOnClickListener(new View.OnClickListener() {
-                                    @Override
-                                    public void onClick(View v) {
-                                        Common.alert.dismiss();
-                                    }
-                                });
-                            } catch (IOException ex) {
-                                Log.d(Common.LOG_TAG,  ex.getMessage());
-                            }
                             alert.dismiss();
                         }
                     });
@@ -189,24 +199,6 @@ public class JobItemActivity extends AppCompatActivity
                 }
             }
         });
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-
-        if (id == R.id.action_refresh) {
-            SyncAdapter.syncImmediately(getApplicationContext(), mWorkId);
-        }
-
-        return super.onOptionsItemSelected(item);
     }
 
     @Override
@@ -287,7 +279,7 @@ public class JobItemActivity extends AppCompatActivity
         // Ensure that there's a camera activity to handle the intent
         if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
             // Create the File where the photo should go
-            File photoFile = photoProcessor.createTmpImageFile();
+            File photoFile = createTmpImageFile();
 
             // Continue only if the File was successfully created
             if (photoFile != null) {
@@ -338,32 +330,45 @@ public class JobItemActivity extends AppCompatActivity
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if(requestCode == REQUEST_TAKE_PHOTO && resultCode == RESULT_OK) {
+            String Filename = String.format(Locale.US, "/%d/img/%s", mWorkId, String.format("%s%s.json",mJobPos,mPhotoType));
             //Save image as json data
-            photoProcessor.SavePhotoJsonData(getBaseContext(), mCurrentPhotoPath, mWorkId, mPhotoType, mJobPos, mJobType);
-            //Load Image in view at selected position
-            /*mLoadImageScroller.LoadImage(
-                    mPhotoType.equals(Common.IMG_PRE) ? mPre_image_list.getChildAt(mJobPos) : mPost_image_list.getChildAt(mJobPos),
-                    String.format("%s%s.json",mJobPos,mPhotoType),
-                    true,
-                    mPhotoType);*/
+            @SuppressLint("StaticFieldLeak")
+            PhotoProcessor T = new PhotoProcessor(getBaseContext(), mCurrentPhotoPath, mWorkId, mPhotoType, mJobPos, mJobType){
+                @Override
+                protected void onPostExecute(Boolean aBool) {
+                    super.onPostExecute(aBool);
+                    if(aBool){
+                        Util.PhotoUploadScheduleJob(getBaseContext(), Filename);
+                    }else {
+                        Log.e(Common.LOG_TAG, getResources().getString(R.string.photo_error_local_folder));
+                    }
+                }
+            };
+            T.execute();
         }
     }
 
+    public File createTmpImageFile() {
+        File storageDir = new File(Environment.getExternalStorageDirectory(),TEMP_PHOTO_PATH);
 
-    /*public void PostUploadIntent(String imgFileName){
-        int interval = 100;
-        long Hash = System.currentTimeMillis();
+        if(!storageDir.exists()){
+            if(storageDir.mkdir()){
+                Log.d(Common.LOG_TAG, String.format("Dir created %s", storageDir));
+            }
+        }
 
-        Intent intent = new Intent(this, PhotoReceiver.class);
-        //intent.setAction(Long.toString(Hash));
-        intent.putExtra(POST_WORK_ID, mWorkId);
+        File image;
+        try {
+            image = File.createTempFile(
+                    "TMP_PHOTO",/* prefix */
+                    ".jpg",       /* suffix */
+                    storageDir           /* directory */
+            );
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
 
-        Log.d(Common.LOG_TAG, "Hash >> " + Hash);
-
-        PendingIntent mPendingIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-
-        AlarmManager mManager = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
-        mManager.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), interval, mPendingIntent);
-        //mManager.cancel(pendingIntent);
-    }*/
+        return image;
+    }
 }

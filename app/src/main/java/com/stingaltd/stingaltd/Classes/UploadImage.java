@@ -17,7 +17,7 @@ import okhttp3.Response;
 
 import static com.stingaltd.stingaltd.Common.Common.TIME_OUT;
 
-public class UploadImage {
+public class UploadImage{
     private Context c;
     private OkHttpClient mClient;
 
@@ -32,19 +32,19 @@ public class UploadImage {
 
     public boolean Upload(String FilePath)
     {
-        try{
+        Log.e(Common.LOG_TAG, "Attempting to upload >> " + FilePath);
+        if(Common.isInternetAvailable()) {
             ImageData obj = (ImageData) Common.readObjectFromFile(c, FilePath);
-            if(obj.Uploaded()==0)
-            {
-                Log.e(Common.LOG_TAG, "Attempting to upload >> " + FilePath);
+            if(obj==null){return false;}
+            if (obj.Uploaded() == 0) {
                 RequestBody requestBody = new FormBody.Builder()
-                        .add("JobId",       String.valueOf(obj.getJobId()))
+                        .add("JobId", String.valueOf(obj.getJobId()))
                         .add("DateCreated", obj.getDateCreated())
-                        .add("PhotoType",   obj.getPhotoType())
-                        .add("Location",    obj.getLocation())
-                        .add("Label",       obj.getLabel())
-                        .add("Thumb",       obj.getThumb())
-                        .add("LargeImage",  obj.getLargeImage())
+                        .add("PhotoType", obj.getPhotoType())
+                        .add("Location", obj.getLocation())
+                        .add("Label", obj.getLabel())
+                        .add("Thumb", obj.getThumb())
+                        .add("LargeImage", obj.getLargeImage())
                         .build();
 
                 final Request request = new Request.Builder()
@@ -52,38 +52,40 @@ public class UploadImage {
                         .post(requestBody)
                         .build();
 
-                if(RequestResponse(request)){
+                if (RequestResponse(request)) {
                     obj.setUploaded(1);
-                    Common.SaveObjectAsFile(c, obj, FilePath);
-                    return true;
+                    try {
+                        Common.SaveObjectAsFile(c, obj, FilePath);
+                        return true;
+                    } catch (IOException e) {
+                        Log.e(Common.LOG_TAG, e.getMessage());
+                    }
                 }
             }
-        }catch (IOException | ClassNotFoundException ex) {
-            Log.e(Common.LOG_TAG, String.format("%s >>>> %s", "UploadImage", ex.getMessage()));
         }
         return false;
     }
 
     public boolean DeletePhoto(int id, String dateCreated)
     {
-        try
-        {
-            RequestBody requestBody = new FormBody.Builder()
-                    .add("imgId", String.valueOf(id))
-                    .add("dateCreated", dateCreated)
-                    .build();
+        if(Common.isInternetAvailable()) {
+            try {
+                RequestBody requestBody = new FormBody.Builder()
+                        .add("imgId", String.valueOf(id))
+                        .add("dateCreated", dateCreated)
+                        .build();
 
-            Request request = new Request.Builder()
-                    .url(Common.BASE_URL + "delete_image.php")
-                    .post(requestBody)
-                    .build();
+                Request request = new Request.Builder()
+                        .url(Common.BASE_URL + "delete_image.php")
+                        .post(requestBody)
+                        .build();
 
-            if(RequestResponse(request)) {
-                Log.e(Common.LOG_TAG, String.format("Delete Photo >> %s id=>[%d] date=>[%s]", "Image deleted", id, dateCreated));
-                return true;
+                if (RequestResponse(request)) {
+                    return true;
+                }
+            } catch (Exception ex) {
+                Log.e(Common.LOG_TAG, String.format("%s >>>> %s", "Delete Photo", ex.getMessage()));
             }
-        }catch (Exception ex) {
-            Log.e(Common.LOG_TAG, String.format("%s >>>> %s", "Delete Photo", ex.getMessage()));
         }
         return false;
     }

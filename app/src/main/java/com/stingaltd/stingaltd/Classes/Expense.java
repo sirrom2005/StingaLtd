@@ -33,9 +33,9 @@ public class Expense
                     }
 
                     if(Common.isInternetAvailable()){
-                        Data.PostData(jsonObject.toString(), workId, "update_expense");
+                        //Data.PostData(jsonObject.toString(), workId, "update_expense");
                     }else{
-                        Data.SaveData(c, jsonObject.toString(), workId, "expense.json");
+                        //Data.SaveData(c, jsonObject.toString(), workId, "expense.json");
                     }
                     return true;
                 }

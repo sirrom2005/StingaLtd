@@ -32,7 +32,7 @@
     <string name="preference_id_key">com.stingaltd.stingaltd.ID_KEY</string>
     <string name="email">Email</string>
     <string name="phone">Phone</string>
-    <string name="inventory_quantity">Issued:</string>
+    <string name="inventory_quantity">Available:</string>
     <string name="inventory_used">Amount Used:</string>
     <string name="inventory">Inventory</string>
     <string name="expense">Expenses</string>
@@ -47,7 +47,10 @@
     <string translatable="false" name="content_authority">com.stingaltd.stingaltd.data</string>
 
     <string name="default_notification_channel_id" translatable="false">fcm_default_channel</string>
-    <string name="action_refresh">Upload to Server</string>
     <string name="missing_job_phot">You are required to add all photos</string>
     <string name="job_status_updated">Job status updated</string>
+    <string name="form_submitted">Form submitted</string>
+    <string name="action_update">Update App</string>
+    <string name="rod_reading">Rod Readings</string>
+    <string name="are_you_sure">Are you sure you want to submit this data</string>
 </resources>

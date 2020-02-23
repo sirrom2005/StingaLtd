@@ -68,12 +68,9 @@ public class RodReadingAdapter extends RecyclerView.Adapter<RodReadingAdapter.Vi
             vHolder.vAdd.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Log.e(Common.LOG_TAG,  String.format("%d >> %s", position, data.size()));
-                    data.add(data.size()-1,new RodReading("Ground/Earth Rod readings " + (position-1),  "0"));
-                    data.add(data.size()-1,new RodReading("Ground/Earth Rod readings " + (position)  ,  "0"));
-                    data.add(data.size()-1,new RodReading("Ground/Earth Rod readings " + (position+1),  "0"));
-                    data.add(data.size()-1,new RodReading("Ground/Earth Rod readings " + (position+2),  "0"));
-                    data.add(data.size()-1,new RodReading("Ground/Earth Rod readings " + (position+3),  "0"));
+                    for(int i=-1; i<=3; i++) {
+                        data.add(data.size() - 1, new RodReading("Ground/Earth Rod readings " + (position + i), "0"));
+                    }
                     notifyDataSetChanged();
                 }
             });
@@ -91,10 +88,9 @@ public class RodReadingAdapter extends RecyclerView.Adapter<RodReadingAdapter.Vi
                         public void onClick(View v) {
                             try{
                                 final JSONObject jsonObject = new JSONObject();
-                                data.get(0).setValue( (data.get(0).getValue().trim()=="") ? "0" : data.get(0).getValue());
-                                data.get(1).setValue( (data.get(1).getValue().trim()=="") ? "0" : data.get(1).getValue());
-                                data.get(2).setValue( (data.get(2).getValue().trim()=="") ? "0" : data.get(2).getValue());
-                                data.get(3).setValue( (data.get(3).getValue().trim()=="") ? "0" : data.get(3).getValue());
+                                for(int i=0; i<=3; i++) {
+                                    data.get(i).setValue((data.get(i).getValue().trim() == "") ? "0" : data.get(i).getValue());
+                                }
                                 for (int i = 0; i < data.size(); i++) {
                                     if(data.get(i).getValue().trim()!="") {
                                         jsonObject.put(data.get(i).getKey(), data.get(i).getValue());
